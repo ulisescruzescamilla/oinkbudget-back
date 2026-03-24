@@ -19,6 +19,8 @@ it('creates a budget', function () {
         'expense_amount' => 200.00,
         'percentage_value' => 20,
         'graph_color' => 'FF5733',
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-01-31',
     ];
 
     $this->postJson('/api/budgets', $data)
@@ -31,7 +33,7 @@ it('creates a budget', function () {
 it('validates required fields on store', function () {
     $this->postJson('/api/budgets', [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['max_limit', 'expense_amount', 'percentage_value', 'graph_color']);
+        ->assertJsonValidationErrors(['max_limit', 'expense_amount', 'percentage_value', 'graph_color', 'start_date', 'end_date']);
 });
 
 it('validates graph_color is a 6-char hex string', function () {
@@ -50,6 +52,17 @@ it('validates percentage_value is between 0 and 100', function () {
         ->assertJsonValidationErrors(['percentage_value']);
 });
 
+it('validates end_date is after start_date', function () {
+    $data = Budget::factory()->make([
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-05-01',
+    ])->toArray();
+
+    $this->postJson('/api/budgets', $data)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['end_date']);
+});
+
 it('updates a budget', function () {
     $budget = Budget::factory()->create();
 
@@ -58,6 +71,8 @@ it('updates a budget', function () {
         'expense_amount' => 500.00,
         'percentage_value' => 25,
         'graph_color' => 'AABBCC',
+        'start_date' => '2026-02-01',
+        'end_date' => '2026-02-28',
     ];
 
     $this->putJson("/api/budgets/{$budget->id}", $data)
@@ -81,6 +96,8 @@ it('returns 404 when updating a non-existent budget', function () {
         'expense_amount' => 200.00,
         'percentage_value' => 20,
         'graph_color' => 'FF5733',
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-01-31',
     ];
 
     $this->putJson('/api/budgets/999', $data)->assertNotFound();

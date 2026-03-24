@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateBudgetRequest extends FormRequest
+class UpdateExpenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,12 +23,10 @@ class UpdateBudgetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'max_limit' => ['required', 'numeric', 'min:0'],
-            'expense_amount' => ['required', 'numeric', 'min:0'],
-            'percentage_value' => ['required', 'integer', 'min:0', 'max:100'],
-            'graph_color' => ['required', 'string', 'regex:/^[A-Fa-f0-9]{6}$/'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after:start_date'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'description' => ['required', 'string'],
+            'budget_id' => ['required', 'integer', 'exists:budgets,id'],
+            'account_id' => ['required', 'integer', 'exists:accounts,id'],
         ];
     }
 }

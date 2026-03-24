@@ -14,6 +14,8 @@ class Budget extends Model
         'expense_amount',
         'percentage_value',
         'graph_color',
+        'start_date',
+        'end_date',
     ];
 
     protected function casts(): array
@@ -22,6 +24,8 @@ class Budget extends Model
             'max_limit' => 'decimal:2',
             'expense_amount' => 'decimal:2',
             'percentage_value' => 'integer',
+            'start_date' => 'date',
+            'end_date' => 'date',
         ];
     }
 }
