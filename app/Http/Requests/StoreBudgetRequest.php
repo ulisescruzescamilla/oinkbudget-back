@@ -27,6 +27,8 @@ class StoreBudgetRequest extends FormRequest
             'expense_amount' => 'required|numeric|min:0',
             'percentage_value' => 'required|integer|min:0|max:100',
             'graph_color' => 'required|string|regex:/^[A-Fa-f0-9]{6}$/',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
         ];
     }
 }
