@@ -20,7 +20,7 @@ class AccountFactory extends Factory
     {
         return [
             'name' => fake()->words(2, true),
-            'type' => fake()->randomElement(AccountTypeEnum::cases())->value,
+            'type' => fake()->randomElement(AccountTypeEnum::values()),
             'amount' => fake()->randomFloat(2, 0, 10000),
             'hidden' => false,
         ];

@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-trait EnumToArray
+trait EnumToArrayTrait
 {
     public static function names(): array
     {
