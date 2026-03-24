@@ -14,6 +14,7 @@ return new class extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->float('amount', 3);
             $table->enum('type', AccountTypeEnum::values());
             $table->boolean('hidden');
