@@ -24,7 +24,7 @@ class StoreAccountRequest extends FormRequest
     {
         return [
             'name' => 'string|required',
-            'type' => 'string|in:cash,debit,credit|required',
+            'type' => 'string|in:cash,debit_card,credit_card|required',
             'amount' => 'numeric|required',
             'hidden' => 'boolean|required',
         ];
