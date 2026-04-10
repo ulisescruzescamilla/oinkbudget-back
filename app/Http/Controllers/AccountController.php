@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAccountRequest;
+use App\Http\Requests\TransferAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Models\Account;
 use App\Repositories\AccountRepository;
@@ -12,6 +13,13 @@ use Illuminate\Http\Response;
 class AccountController extends Controller
 {
     public function __construct(private readonly AccountRepository $accountRepository) {}
+
+    public function index()
+    {
+        $accounts = $this->accountRepository->get();
+
+        return response()->json($accounts, 200);
+    }
 
     public function store(StoreAccountRequest $request): JsonResponse
     {
@@ -25,6 +33,13 @@ class AccountController extends Controller
         $account = $this->accountRepository->update($account, $request->validated());
 
         return response()->json($account);
+    }
+
+    public function transfer(TransferAccountRequest $request)
+    {
+        $this->accountRepository->transfer($request->input('account_from'), $request->input('account_to'), $request->input('amount'));
+
+        return response()->json([], 200);
     }
 
     public function destroy(Account $account): Response

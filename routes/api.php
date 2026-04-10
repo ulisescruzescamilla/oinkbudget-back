@@ -12,8 +12,10 @@ Route::get('/user', function (Request $request) {
 
 // Accounts
 Route::post('accounts', [AccountController::class, 'store']);
+Route::get('accounts', [AccountController::class, 'index']);
 Route::put('accounts/{account}', [AccountController::class, 'update']);
 Route::delete('accounts/{account}', [AccountController::class, 'destroy']);
+Route::post('accounts/transfer', [AccountController::class, 'transfer']);
 Route::post('accounts/{id}/restore', [AccountController::class, 'restore']);
 
 // Budgets

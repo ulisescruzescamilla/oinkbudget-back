@@ -6,6 +6,20 @@ use App\Models\Account;
 
 class AccountRepository
 {
+    public function get()
+    {
+        return Account::query()->get();
+    }
+
+    public function transfer(Account $accountFrom, Account $accountTo, float $amount): void
+    {
+        $accountFrom->amount = $accountFrom->amount - $amount;
+        $accountTo->amount = $accountTo->amount + $amount;
+
+        $accountFrom->save();
+        $accountTo->save();
+    }
+
     public function store(array $data): Account
     {
         return Account::query()->create($data);
