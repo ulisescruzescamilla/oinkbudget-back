@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->float('max_limit', 3);
             $table->float('expense_amount', 3);
             $table->unsignedInteger('percentage_value');
-            $table->char('graph_color', 6);
+            $table->char('graph_color', 7);
             $table->timestamps();
         });
     }

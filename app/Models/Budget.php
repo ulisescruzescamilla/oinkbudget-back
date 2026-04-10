@@ -10,6 +10,7 @@ class Budget extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'max_limit',
         'expense_amount',
         'percentage_value',
@@ -24,8 +25,10 @@ class Budget extends Model
             'max_limit' => 'decimal:2',
             'expense_amount' => 'decimal:2',
             'percentage_value' => 'integer',
-            'start_date' => 'date',
-            'end_date' => 'date',
+            'start_date' => 'date:Y-m-d',
+            'end_date' => 'date:Y-m-d',
+            'created_at' => 'datetime: Y-m-d H:m',
+            'updated_at' => 'datetime: Y-m-d H:m',
         ];
     }
 }

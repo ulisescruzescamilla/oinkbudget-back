@@ -23,12 +23,12 @@ class UpdateBudgetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'max_limit' => ['required', 'numeric', 'min:0'],
-            'expense_amount' => ['required', 'numeric', 'min:0'],
-            'percentage_value' => ['required', 'integer', 'min:0', 'max:100'],
-            'graph_color' => ['required', 'string', 'regex:/^[A-Fa-f0-9]{6}$/'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after:start_date'],
+            'name' => 'required|string|min:2|max:255',
+            'max_limit' => 'nullable|required_without:percentage_value|numeric|min:0',
+            'percentage_value' => 'nullable|required_without:max_limit|integer|min:0|max:100',
+            'graph_color' => 'required|string|regex:/^#[A-Fa-f0-9]{6}$/',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
         ];
     }
 }
