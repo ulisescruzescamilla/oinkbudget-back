@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PeriodEnum;
 use App\Models\Budget;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,7 +23,9 @@ class BudgetFactory extends Factory
             'max_limit' => fake()->randomFloat(2, 100, 5000),
             'expense_amount' => fake()->randomFloat(2, 0, 1000),
             'percentage_value' => fake()->numberBetween(1, 100),
-            'graph_color' => "#".fake()->regexify('[A-F0-9]{6}'),
+            'period' => fake()->randomElement(PeriodEnum::array()),
+            'is_recurrent' => rand(0,1),
+            'is_active' => true,
             'start_date' => $startDate = fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
             'end_date' => fake()->dateTimeBetween($startDate, '+1 year')->format('Y-m-d'),
         ];

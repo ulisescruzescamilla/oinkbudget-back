@@ -12,9 +12,11 @@ class Budget extends Model
     protected $fillable = [
         'name',
         'max_limit',
+        'period',
+        'is_recurrent',
+        'is_active',
         'expense_amount',
         'percentage_value',
-        'graph_color',
         'start_date',
         'end_date',
     ];
@@ -29,6 +31,8 @@ class Budget extends Model
             'end_date' => 'date:Y-m-d',
             'created_at' => 'datetime: Y-m-d H:m',
             'updated_at' => 'datetime: Y-m-d H:m',
+            'is_recurrent' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 }

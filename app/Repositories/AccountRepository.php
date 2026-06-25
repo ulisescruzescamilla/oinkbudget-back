@@ -43,4 +43,11 @@ class AccountRepository
 
         return $account->fresh();
     }
+
+    public function amountAvailable() : float
+    {
+        return Account::query()
+            ->where('hidden', false)
+            ->sum('amount');
+    }
 }

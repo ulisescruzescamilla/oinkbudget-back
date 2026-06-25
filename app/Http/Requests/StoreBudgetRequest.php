@@ -25,10 +25,8 @@ class StoreBudgetRequest extends FormRequest
         return [
             'name' => 'required|string|min:2|max:255',
             'max_limit' => 'nullable|required_without:percentage_value|numeric|min:0',
-            'percentage_value' => 'nullable|required_without:max_limit|integer|min:0|max:100',
-            'graph_color' => 'required|string|regex:/^#[A-Fa-f0-9]{6}$/',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'period' => 'required|string|in:yearly,monthly,biweekly,weekly',
+            'is_recurrent' => 'nullable|boolean'
         ];
     }
 }

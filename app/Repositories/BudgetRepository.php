@@ -3,11 +3,19 @@
 namespace App\Repositories;
 
 use App\Models\Budget;
-use App\Models\Income;
+use App\Models\Expense;
 use Illuminate\Database\Eloquent\Collection;
 
 class BudgetRepository
 {
+    protected AccountRepository $accountRepository;
+    
+    public function __construct(
+        AccountRepository $accountRepository
+    ) {
+        $this->accountRepository = $accountRepository;
+    }
+
     public function get(): Collection
     {
         // TODO sort
@@ -32,17 +40,13 @@ class BudgetRepository
             $data['expense_amount'] = 0;
         }
 
-        // calculate total of incomes and take amount from max_limit to calculate percentage value
-        if (! isset($data['percentage_value']) && isset($data['max_limit'])) {
-            // TODO use repository filtered by date range
-            $totalIncomes = Income::query()->sum('amount');
-            $data['percentage_value'] = $totalIncomes > 0 ? (int) round(($data['max_limit'] / $totalIncomes) * 100) : 0;
-        }
+        // calculate the percentage of this budget taking total available from balance
+        $amountAvailable = $this->accountRepository->amountAvailable();
+        
+        $data['percentage_value'] = 0;
 
-        if (! isset($data['max_limit']) && isset($data['percentage_value'])) {
-            // TODO use repository filtered by date range
-            $totalIncomes = Income::query()->sum('amount');
-            $data['max_limit'] = ($totalIncomes * $data['percentage_value']) / 100;
+        if ($amountAvailable) {
+            $data['percentage_value'] = round(($data['max_limit'] / $amountAvailable) * 100);
         }
 
         return Budget::query()->create($data);
@@ -54,17 +58,11 @@ class BudgetRepository
             $data['expense_amount'] = 0;
         }
 
-        // calculate total of incomes and take amount from max_limit to calculate percentage value
-        if (! isset($data['percentage_value']) && isset($data['max_limit'])) {
-            // TODO use repository filtered by date range
-            $totalIncomes = Income::query()->sum('amount');
-            $data['percentage_value'] = $totalIncomes > 0 ? (int) round(($data['max_limit'] / $totalIncomes) * 100) : 0;
-        }
+        $amountAvailable = $this->accountRepository->amountAvailable();
 
-        if (! isset($data['max_limit']) && isset($data['percentage_value'])) {
-            // TODO use repository filtered by date range
-            $totalIncomes = Income::query()->sum('amount');
-            $data['max_limit'] = ($totalIncomes * $data['percentage_value']) / 100;
+        $data['percentage_value'] = 0;
+        if ($amountAvailable) {
+            $data['percentage_value'] = round(($data['max_limit'] / $amountAvailable) * 100);
         }
 
         $budget->update($data);
@@ -72,8 +70,40 @@ class BudgetRepository
         return $budget->fresh();
     }
 
+    public function updateBudgetExpenses(Expense $expense)
+    {
+        $budget = $expense->budget;
+
+        $budget->expense_amount = round($expense->amount + $budget->expense_amount , 2);
+        $budget->save();
+    }
+
     public function delete(Budget $budget): void
     {
         $budget->delete();
+    }
+    
+    /**
+     * Take current budgets and calculate an average of daily limit
+     *
+     * @return float
+     */
+    public function getDailyLimit(): float
+    {
+        $start = Budget::query()->where('is_active', true)->orderBy('start_date', 'asc');
+        $end = Budget::query()->where('is_active', true)->orderBy('end_date', 'desc');
+
+        $budgets = $start->get();
+
+        if ($budgets->isEmpty()) {
+            return 0;
+        }
+
+        $startDate = $start->first()->start_date;
+        $endDate = $end->first()->end_date;
+
+        $daysInPeriod = $startDate->diffInDays($endDate);
+
+        return round($budgets->sum('max_limit') / $daysInPeriod, 2);
     }
 }

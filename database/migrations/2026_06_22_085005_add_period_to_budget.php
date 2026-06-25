@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PeriodEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,8 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('budgets', function (Blueprint $table) {
-            $table->date('start_date');
-            $table->date('end_date')->after('start_date');
+            $table->enum('period', PeriodEnum::array())->after('max_limit')->default('monthly');
+            $table->boolean('is_recurrent')->after('period')->default(false);
+            $table->boolean('is_active')->after('is_recurrent')->default(true);
         });
     }
 
@@ -23,7 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('budgets', function (Blueprint $table) {
-            $table->dropColumn(['start_date', 'end_date']);
+            $table->dropColumn('period');
+            $table->dropColumn('is_recurrent');
+            $table->dropColumn('is_active');
         });
     }
 };

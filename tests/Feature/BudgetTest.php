@@ -14,34 +14,23 @@ it('returns all budgets', function () {
 });
 
 it('creates a budget', function () {
-    $data = [
-        'max_limit' => 1000.00,
-        'expense_amount' => 200.00,
-        'percentage_value' => 20,
-        'graph_color' => 'FF5733',
-        'start_date' => '2026-01-01',
-        'end_date' => '2026-01-31',
-    ];
+    $data = Budget::factory()->make()->toArray();
 
-    $this->postJson('/api/budgets', $data)
-        ->assertCreated()
-        ->assertJsonFragment(['graph_color' => 'FF5733']);
+    $response = $this->postJson('/api/budgets', $data)
+        ->assertCreated();
 
-    $this->assertDatabaseHas('budgets', ['graph_color' => 'FF5733']);
+    $budget = json_decode($response->getContent(), true);
+
+    $this->assertDatabaseHas('budgets', [
+        'id' =>   $budget['id'],
+        'max_limit' => $budget['max_limit'],
+    ]);
 });
 
 it('validates required fields on store', function () {
     $this->postJson('/api/budgets', [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['max_limit', 'expense_amount', 'percentage_value', 'graph_color', 'start_date', 'end_date']);
-});
-
-it('validates graph_color is a 6-char hex string', function () {
-    $data = Budget::factory()->make(['graph_color' => 'ZZZZZZ'])->toArray();
-
-    $this->postJson('/api/budgets', $data)
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['graph_color']);
+        ->assertJsonValidationErrors(['max_limit', 'expense_amount', 'percentage_value', 'start_date', 'end_date']);
 });
 
 it('validates percentage_value is between 0 and 100', function () {
@@ -70,16 +59,14 @@ it('updates a budget', function () {
         'max_limit' => 2000.00,
         'expense_amount' => 500.00,
         'percentage_value' => 25,
-        'graph_color' => 'AABBCC',
         'start_date' => '2026-02-01',
         'end_date' => '2026-02-28',
     ];
 
     $this->putJson("/api/budgets/{$budget->id}", $data)
-        ->assertOk()
-        ->assertJsonFragment(['graph_color' => 'AABBCC']);
+        ->assertOk();
 
-    $this->assertDatabaseHas('budgets', ['id' => $budget->id, 'graph_color' => 'AABBCC']);
+    $this->assertDatabaseHas('budgets', ['id' => $budget->id]);
 });
 
 it('deletes a budget', function () {
@@ -95,7 +82,6 @@ it('returns 404 when updating a non-existent budget', function () {
         'max_limit' => 1000.00,
         'expense_amount' => 200.00,
         'percentage_value' => 20,
-        'graph_color' => 'FF5733',
         'start_date' => '2026-01-01',
         'end_date' => '2026-01-31',
     ];

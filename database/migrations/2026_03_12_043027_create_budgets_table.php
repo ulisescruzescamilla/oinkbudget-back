@@ -17,7 +17,6 @@ return new class extends Migration
             $table->float('max_limit', 3);
             $table->float('expense_amount', 3);
             $table->unsignedInteger('percentage_value');
-            $table->char('graph_color', 7);
             $table->timestamps();
         });
     }

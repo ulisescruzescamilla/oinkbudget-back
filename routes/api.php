@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use Illuminate\Http\Request;
@@ -36,3 +37,6 @@ Route::get('incomes', [IncomeController::class, 'index']);
 Route::post('incomes', [IncomeController::class, 'store']);
 Route::put('incomes/{income}', [IncomeController::class, 'update']);
 Route::delete('incomes/{income}', [IncomeController::class, 'destroy']);
+
+// Dashboard
+Route::get('dashboard', [DashboardController::class, 'index']);
