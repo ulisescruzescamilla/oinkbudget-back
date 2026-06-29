@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\BudgetData;
+use App\DataTransferObjects\BudgetUpdateData;
 use App\Http\Requests\IndexBudgetRequest;
 use App\Http\Requests\StoreBudgetRequest;
 use App\Http\Requests\UpdateBudgetRequest;
@@ -31,14 +33,14 @@ class BudgetController extends Controller
 
     public function store(StoreBudgetRequest $request): JsonResponse
     {
-        $budget = $this->budgetRepository->store($request->validated());
+        $budget = $this->budgetRepository->store(BudgetData::fromValidated($request->validated()));
 
         return response()->json($budget, 201);
     }
 
     public function update(UpdateBudgetRequest $request, Budget $budget): JsonResponse
     {
-        $budget = $this->budgetRepository->update($budget, $request->validated());
+        $budget = $this->budgetRepository->update($budget, BudgetUpdateData::fromValidated($request->validated()));
 
         return response()->json($budget);
     }

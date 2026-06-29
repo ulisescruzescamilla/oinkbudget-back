@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\ExpenseData;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
 use App\Models\Expense;
@@ -20,14 +21,14 @@ class ExpenseController extends Controller
 
     public function store(StoreExpenseRequest $request): JsonResponse
     {
-        $expense = $this->expenseRepository->store($request->validated());
+        $expense = $this->expenseRepository->store(ExpenseData::fromValidated($request->validated()));
 
         return response()->json($expense, 201);
     }
 
     public function update(UpdateExpenseRequest $request, Expense $expense): JsonResponse
     {
-        $expense = $this->expenseRepository->update($expense, $request->validated());
+        $expense = $this->expenseRepository->update($expense, ExpenseData::fromValidated($request->validated()));
 
         return response()->json($expense);
     }

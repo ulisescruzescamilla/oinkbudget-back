@@ -23,7 +23,7 @@ class BudgetFactory extends Factory
             'max_limit' => fake()->randomFloat(2, 100, 5000),
             'expense_amount' => fake()->randomFloat(2, 0, 1000),
             'percentage_value' => fake()->numberBetween(1, 100),
-            'period' => fake()->randomElement(PeriodEnum::array()),
+            'period' => fake()->randomElement(PeriodEnum::values()),
             'is_recurrent' => rand(0,1),
             'is_active' => true,
             'start_date' => $startDate = fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),

@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DataTransferObjects\ExpenseData;
 use App\Models\Expense;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -16,10 +17,10 @@ class ExpenseRepository
         $this->budgetRepository = $budgetRepository;
     }
 
-    public function store(array $data): Expense
+    public function store(ExpenseData $data): Expense
     {
         // save expense
-        $expense =  Expense::query()->create($data);
+        $expense =  Expense::query()->create($data->toArray());
         // update budget expenses amount
         $this->budgetRepository->updateBudgetExpenses($expense);
 
@@ -55,16 +56,16 @@ class ExpenseRepository
             ->all();
     }
 
-    public function update(Expense $expense, array $data): Expense
+    public function update(Expense $expense, ExpenseData $data): Expense
     {
         $budget = $expense->budget;
 
         // remove old amount form this sum
         $budget->expense_amount = round($budget->expense_amount - $expense->amount, 2);
         $budget->save();
-        
-        // update 
-        $expense->update($data);
+
+        // update
+        $expense->update($data->toArray());
         $expense = $expense->fresh(); // refresh collection
         $this->budgetRepository->updateBudgetExpenses($expense);
 

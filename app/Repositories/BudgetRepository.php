@@ -2,19 +2,19 @@
 
 namespace App\Repositories;
 
+use App\DataTransferObjects\BudgetData;
+use App\DataTransferObjects\BudgetUpdateData;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Services\BudgetLimitCalculator;
 use Illuminate\Database\Eloquent\Collection;
 
 class BudgetRepository
 {
-    protected AccountRepository $accountRepository;
-    
     public function __construct(
-        AccountRepository $accountRepository
-    ) {
-        $this->accountRepository = $accountRepository;
-    }
+        private readonly AccountRepository $accountRepository,
+        private readonly BudgetLimitCalculator $limitCalculator,
+    ) {}
 
     public function get(): Collection
     {
@@ -34,38 +34,33 @@ class BudgetRepository
         return $query->get();
     }
 
-    public function store(array $data): Budget
+    public function store(BudgetData $data): Budget
     {
-        if (! isset($data['expense_amount'])) {
-            $data['expense_amount'] = 0;
-        }
+        $limits = $this->limitCalculator->calculate(
+            $data->max_limit,
+            $data->percentage_value,
+            $this->accountRepository->amountAvailable(),
+        );
 
-        // calculate the percentage of this budget taking total available from balance
-        $amountAvailable = $this->accountRepository->amountAvailable();
-        
-        $data['percentage_value'] = 0;
-
-        if ($amountAvailable) {
-            $data['percentage_value'] = round(($data['max_limit'] / $amountAvailable) * 100);
-        }
-
-        return Budget::query()->create($data);
+        return Budget::query()->create([...$data->toArray(), ...$limits]);
     }
 
-    public function update(Budget $budget, array $data): Budget
+    public function update(Budget $budget, BudgetUpdateData $data): Budget
     {
-        if (! isset($data['expense_amount'])) {
-            $data['expense_amount'] = 0;
+        $changes = $data->toArray();
+
+        if ($data->max_limit !== null || $data->percentage_value !== null) {
+            $changes = [
+                ...$changes,
+                ...$this->limitCalculator->calculate(
+                    $data->max_limit,
+                    $data->percentage_value,
+                    $this->accountRepository->amountAvailable(),
+                ),
+            ];
         }
 
-        $amountAvailable = $this->accountRepository->amountAvailable();
-
-        $data['percentage_value'] = 0;
-        if ($amountAvailable) {
-            $data['percentage_value'] = round(($data['max_limit'] / $amountAvailable) * 100);
-        }
-
-        $budget->update($data);
+        $budget->update($changes);
 
         return $budget->fresh();
     }
