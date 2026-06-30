@@ -3,7 +3,7 @@
 use App\Services\BudgetLimitCalculator;
 
 beforeEach(function () {
-    $this->calculator = new BudgetLimitCalculator();
+    $this->calculator = new BudgetLimitCalculator;
 });
 
 it('derives percentage_value from max_limit', function () {

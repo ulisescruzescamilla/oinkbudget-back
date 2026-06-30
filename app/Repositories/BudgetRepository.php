@@ -19,7 +19,7 @@ class BudgetRepository
     public function get(): Collection
     {
         // TODO sort
-        return Budget::query()->get();
+        return Budget::query()->with('category')->get();
     }
 
     public function filterByDate(string $startDate, string $endDate): Collection
@@ -69,7 +69,7 @@ class BudgetRepository
     {
         $budget = $expense->budget;
 
-        $budget->expense_amount = round($expense->amount + $budget->expense_amount , 2);
+        $budget->expense_amount = round($expense->amount + $budget->expense_amount, 2);
         $budget->save();
     }
 
@@ -77,11 +77,9 @@ class BudgetRepository
     {
         $budget->delete();
     }
-    
+
     /**
      * Take current budgets and calculate an average of daily limit
-     *
-     * @return float
      */
     public function getDailyLimit(): float
     {

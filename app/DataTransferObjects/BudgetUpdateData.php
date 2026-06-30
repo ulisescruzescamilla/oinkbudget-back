@@ -22,6 +22,7 @@ final readonly class BudgetUpdateData
         public ?int $percentage_value = null,
         public ?string $start_date = null,
         public ?string $end_date = null,
+        public ?int $category_id = null,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -36,6 +37,7 @@ final readonly class BudgetUpdateData
             percentage_value: isset($data['percentage_value']) ? (int) $data['percentage_value'] : null,
             start_date: $data['start_date'] ?? null,
             end_date: $data['end_date'] ?? null,
+            category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
         );
     }
 
@@ -57,6 +59,7 @@ final readonly class BudgetUpdateData
                 'percentage_value' => $this->percentage_value,
                 'start_date' => $this->start_date,
                 'end_date' => $this->end_date,
+                'category_id' => $this->category_id,
             ],
             static fn (mixed $value): bool => $value !== null,
         );

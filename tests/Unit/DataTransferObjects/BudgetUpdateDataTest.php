@@ -12,6 +12,7 @@ it('leaves properties null for fields absent from the validated payload', functi
         ->and($data->name)->toBeNull()
         ->and($data->period)->toBeNull()
         ->and($data->is_recurrent)->toBeNull()
+        ->and($data->category_id)->toBeNull()
         ->and($data->start_date)->toBeNull();
 });
 

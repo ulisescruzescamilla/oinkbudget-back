@@ -20,7 +20,7 @@ class ExpenseRepository
     public function store(ExpenseData $data): Expense
     {
         // save expense
-        $expense =  Expense::query()->create($data->toArray());
+        $expense = Expense::query()->create($data->toArray());
         // update budget expenses amount
         $this->budgetRepository->updateBudgetExpenses($expense);
 
@@ -29,6 +29,7 @@ class ExpenseRepository
 
     /**
      * Calculate expense from the last 7 days
+     *
      * @return array<int, float>
      */
     public function last7Days(): array
@@ -47,10 +48,10 @@ class ExpenseRepository
 
         // frontend needs specific format [{d,v},...] for graphs
         return collect($period)
-            ->map(function(Carbon $date) use ($totalsByDate) {
+            ->map(function (Carbon $date) use ($totalsByDate) {
                 return [
-                    "d" => strtoupper(substr($date->format('D'), 0, 1)),
-                    "v" => (float) ($totalsByDate[$date->toDateString()] ?? 0)
+                    'd' => strtoupper(substr($date->format('D'), 0, 1)),
+                    'v' => (float) ($totalsByDate[$date->toDateString()] ?? 0),
                 ];
             })
             ->all();
@@ -89,7 +90,7 @@ class ExpenseRepository
 
         $dailyLimit = $this->budgetRepository->getDailyLimit();
 
-        if (!$totalExpenseToday) {
+        if (! $totalExpenseToday) {
             return 0;
         }
 
@@ -98,7 +99,7 @@ class ExpenseRepository
         return $dailyPct;
     }
 
-    public function lastMoves() : Collection
+    public function lastMoves(): Collection
     {
         return Expense::whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
             ->latest()

@@ -10,6 +10,7 @@ it('maps validated data to typed properties', function () {
         'period' => 'monthly',
         'is_recurrent' => true,
         'percentage_value' => '50',
+        'category_id' => 1,
         'start_date' => '2026-01-01',
         'end_date' => '2026-01-31',
     ]);
@@ -21,6 +22,7 @@ it('maps validated data to typed properties', function () {
         ->and($data->is_active)->toBeTrue()
         ->and($data->expense_amount)->toBe(0.0)
         ->and($data->percentage_value)->toBe(50)
+        ->and($data->category_id)->toBe(1)
         ->and($data->start_date)->toBe('2026-01-01')
         ->and($data->end_date)->toBe('2026-01-31');
 });
@@ -36,7 +38,8 @@ it('defaults expense_amount to 0 and is_recurrent to false when absent', functio
 
     expect($data->expense_amount)->toBe(0.0)
         ->and($data->is_recurrent)->toBeFalse()
-        ->and($data->percentage_value)->toBeNull();
+        ->and($data->percentage_value)->toBeNull()
+        ->and($data->category_id)->toBeNull();
 });
 
 it('converts back to an array matching Budget::$fillable', function () {
@@ -58,5 +61,6 @@ it('converts back to an array matching Budget::$fillable', function () {
         'percentage_value' => null,
         'start_date' => '2026-01-01',
         'end_date' => '2026-12-31',
+        'category_id' => null,
     ]);
 });
