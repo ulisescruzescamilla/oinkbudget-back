@@ -2,7 +2,9 @@
 
 namespace App\Repositories;
 
+use App\DataTransferObjects\BalanceData;
 use App\DataTransferObjects\ExpenseData;
+use App\Enums\BalanceTypeEnum;
 use App\Models\Expense;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -10,12 +12,10 @@ use Illuminate\Support\Collection;
 
 class ExpenseRepository
 {
-    protected BudgetRepository $budgetRepository;
-
-    public function __construct(BudgetRepository $budgetRepository)
-    {
-        $this->budgetRepository = $budgetRepository;
-    }
+    public function __construct(
+        private readonly BudgetRepository $budgetRepository,
+        private readonly BalanceRepository $balanceRepository,
+    ) {}
 
     public function store(ExpenseData $data): Expense
     {
@@ -24,7 +24,22 @@ class ExpenseRepository
         // update budget expenses amount
         $this->budgetRepository->updateBudgetExpenses($expense);
 
-        return $expense;
+        // create balance record
+        $account = $expense->account;
+
+        $balanceData = new BalanceData(
+            description: $data->description,
+            amount: $data->amount,
+            type: BalanceTypeEnum::EXPENSE,
+            account_name: $account->name,
+            account_id: $data->account_id,
+            balanceable_type: $expense::class,
+            balanceable_id: $expense->id,
+        );
+
+        $this->balanceRepository->store($balanceData);
+
+        return $expense->fresh('balance');
     }
 
     /**
@@ -70,11 +85,32 @@ class ExpenseRepository
         $expense = $expense->fresh(); // refresh collection
         $this->budgetRepository->updateBudgetExpenses($expense);
 
-        return $expense;
+        // update balance record
+        $account = $expense->account;
+
+        $balanceData = new BalanceData(
+            description: $data->description,
+            amount: $data->amount,
+            type: BalanceTypeEnum::EXPENSE,
+            account_name: $account->name,
+            account_id: $data->account_id,
+            balanceable_type: $expense::class,
+            balanceable_id: $expense->id,
+        );
+
+        if ($expense->balance) {
+            $this->balanceRepository->update($expense->balance, $balanceData);
+        } else {
+            $balance = $this->balanceRepository->store($balanceData);
+            $expense->balance()->save($balance);
+        }
+
+        return $expense->fresh('balance');
     }
 
     public function delete(Expense $expense): void
     {
+        $expense->balance()?->delete();
         $expense->delete();
     }
 

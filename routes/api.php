@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
@@ -44,3 +45,6 @@ Route::get('categories', [CategoryController::class, 'index']);
 
 // Dashboard
 Route::get('dashboard', [DashboardController::class, 'index']);
+
+// Balances
+Route::get('balances', [BalanceController::class, 'index']);
