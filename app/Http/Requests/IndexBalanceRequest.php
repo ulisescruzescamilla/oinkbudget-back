@@ -20,6 +20,7 @@ class IndexBalanceRequest extends FormRequest
             'start_date' => 'nullable|date|date_format:Y-m-d',
             'end_date' => 'nullable|date|date_format:Y-m-d',
             'order' => 'nullable|in:asc,desc',
+            'group_by' => 'nullable|string|in:created_at,account_id'
         ];
     }
 }
