@@ -23,9 +23,6 @@ class BalanceController extends Controller
                 $startDate = Carbon::parse($request->start_date ?? now())->startOfDay();
                 $endDate = Carbon::parse($request->end_date ?? now())->endOfDay();
 
-                // Log::debug("start: ". print_r($startDate->format('Y-m-d'), true));
-                // Log::debug("end: ". print_r($endDate->format('Y-m-d'), true));
-
                 return response()->json($this->balanceRepository->groupByDate($startDate, $endDate));
             }
         }

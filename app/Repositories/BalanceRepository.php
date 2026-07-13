@@ -33,8 +33,6 @@ class BalanceRepository
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return $collection;
-
         return collect($collection)->groupBy(function ($balance) {
             return substr($balance['created_at'], 0, 10);
         });
