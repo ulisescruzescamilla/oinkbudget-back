@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\AccountData;
 use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\TransferAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
@@ -23,14 +24,14 @@ class AccountController extends Controller
 
     public function store(StoreAccountRequest $request): JsonResponse
     {
-        $account = $this->accountRepository->store($request->validated());
+        $account = $this->accountRepository->store(AccountData::fromValidated($request->validated()));
 
         return response()->json($account, 201);
     }
 
     public function update(UpdateAccountRequest $request, Account $account): JsonResponse
     {
-        $account = $this->accountRepository->update($account, $request->validated());
+        $account = $this->accountRepository->update($account, AccountData::fromValidated($request->validated()));
 
         return response()->json($account);
     }

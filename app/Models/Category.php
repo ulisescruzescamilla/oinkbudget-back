@@ -4,30 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Account extends Model
+class Category extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
-        'type',
-        'amount',
-        'hidden',
+        'color',
+        'icon_code',
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
-        'deleted_at'
     ];
 
-    protected function casts(): array
+    public function budgets(): HasMany
     {
-        return [
-            'amount' => 'decimal:2',
-            'hidden' => 'boolean',
-        ];
+        return $this->hasMany(Budget::class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DataTransferObjects\AccountData;
 use App\Models\Account;
 
 class AccountRepository
@@ -20,14 +21,14 @@ class AccountRepository
         $accountTo->save();
     }
 
-    public function store(array $data): Account
+    public function store(AccountData $data): Account
     {
-        return Account::query()->create($data);
+        return Account::query()->create($data->toArray());
     }
 
-    public function update(Account $account, array $data): Account
+    public function update(Account $account, AccountData $data): Account
     {
-        $account->update($data);
+        $account->update($data->toArray());
 
         return $account->fresh();
     }
@@ -44,7 +45,7 @@ class AccountRepository
         return $account->fresh();
     }
 
-    public function amountAvailable() : float
+    public function amountAvailable(): float
     {
         return Account::query()
             ->where('hidden', false)

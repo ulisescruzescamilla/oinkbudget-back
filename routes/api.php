@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
@@ -38,5 +40,11 @@ Route::post('incomes', [IncomeController::class, 'store']);
 Route::put('incomes/{income}', [IncomeController::class, 'update']);
 Route::delete('incomes/{income}', [IncomeController::class, 'destroy']);
 
+// Categories
+Route::get('categories', [CategoryController::class, 'index']);
+
 // Dashboard
 Route::get('dashboard', [DashboardController::class, 'index']);
+
+// Balances
+Route::get('balances', [BalanceController::class, 'index']);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\IncomeData;
 use App\Http\Requests\StoreIncomeRequest;
 use App\Http\Requests\UpdateIncomeRequest;
 use App\Models\Income;
@@ -20,14 +21,14 @@ class IncomeController extends Controller
 
     public function store(StoreIncomeRequest $request): JsonResponse
     {
-        $income = $this->incomeRepository->store($request->validated());
+        $income = $this->incomeRepository->store(IncomeData::fromValidated($request->validated()));
 
         return response()->json($income, 201);
     }
 
     public function update(UpdateIncomeRequest $request, Income $income): JsonResponse
     {
-        $income = $this->incomeRepository->update($income, $request->validated());
+        $income = $this->incomeRepository->update($income, IncomeData::fromValidated($request->validated()));
 
         return response()->json($income);
     }
