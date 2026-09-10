@@ -15,12 +15,13 @@ class Account extends Model
         'type',
         'amount',
         'hidden',
+        'client_id',
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
     ];
 
     protected function casts(): array

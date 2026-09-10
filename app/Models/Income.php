@@ -15,6 +15,8 @@ class Income extends Model
         'amount',
         'description',
         'account_id',
+        'client_id',
+        'created_at',
     ];
 
     protected function casts(): array

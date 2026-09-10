@@ -30,6 +30,7 @@ class StoreBudgetRequest extends FormRequest
             'start_date' => 'required|date|date_format:Y-m-d',
             'end_date' => 'required|date|date_format:Y-m-d|after:start_date',
             'category_id' => 'nullable|integer|exists:categories,id',
+            'client_id' => 'sometimes|nullable|uuid',
         ];
     }
 }

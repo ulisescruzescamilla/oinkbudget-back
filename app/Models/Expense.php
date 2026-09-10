@@ -16,6 +16,8 @@ class Expense extends Model
         'description',
         'budget_id',
         'account_id',
+        'client_id',
+        'created_at',
     ];
 
     protected function casts(): array

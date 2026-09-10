@@ -3,6 +3,7 @@
 use App\Models\Budget;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -26,6 +27,20 @@ it('creates a budget', function () {
         'id' => $budget['id'],
         'max_limit' => $budget['max_limit'],
     ]);
+});
+
+it('returns the existing budget when client_id is duplicated', function () {
+    $data = Budget::factory()->make()->toArray();
+    $data['client_id'] = (string) Str::uuid();
+
+    $firstResponse = $this->postJson('/api/budgets', $data)->assertCreated();
+    $secondResponse = $this->postJson('/api/budgets', $data)->assertCreated();
+
+    $firstId = json_decode($firstResponse->getContent(), true)['id'];
+    $secondId = json_decode($secondResponse->getContent(), true)['id'];
+
+    expect($secondId)->toBe($firstId);
+    $this->assertDatabaseCount('budgets', 1);
 });
 
 it('validates required fields on store', function () {

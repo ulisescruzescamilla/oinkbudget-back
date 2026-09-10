@@ -17,6 +17,7 @@ final readonly class BudgetData
         public string $start_date,
         public string $end_date,
         public ?int $category_id = null,
+        public ?string $client_id = null,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -32,6 +33,7 @@ final readonly class BudgetData
             start_date: $data['start_date'],
             end_date: $data['end_date'],
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
+            client_id: $data['client_id'] ?? null,
         );
     }
 
@@ -51,6 +53,7 @@ final readonly class BudgetData
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'category_id' => $this->category_id,
+            'client_id' => $this->client_id,
         ];
     }
 }

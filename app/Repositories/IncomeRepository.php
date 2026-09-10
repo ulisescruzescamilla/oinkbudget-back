@@ -15,6 +15,14 @@ class IncomeRepository
 
     public function store(IncomeData $data): Income
     {
+        if ($data->client_id) {
+            $existing = Income::query()->where('client_id', $data->client_id)->first();
+
+            if ($existing) {
+                return $existing->fresh('balance');
+            }
+        }
+
         $income = Income::query()->create($data->toArray());
 
         $account = $income->account;
@@ -27,6 +35,7 @@ class IncomeRepository
             account_id: $data->account_id,
             balanceable_type: $income::class,
             balanceable_id: $income->id,
+            created_at: $data->created_at,
         );
 
         $balance = $this->balanceRepository->store($balanceData);

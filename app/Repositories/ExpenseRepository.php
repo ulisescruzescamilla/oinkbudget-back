@@ -8,7 +8,6 @@ use App\Enums\BalanceTypeEnum;
 use App\Models\Expense;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
 
 class ExpenseRepository
 {
@@ -19,6 +18,14 @@ class ExpenseRepository
 
     public function store(ExpenseData $data): Expense
     {
+        if ($data->client_id) {
+            $existing = Expense::query()->where('client_id', $data->client_id)->first();
+
+            if ($existing) {
+                return $existing->fresh('balance');
+            }
+        }
+
         // save expense
         $expense = Expense::query()->create($data->toArray());
         // update budget expenses amount
@@ -35,6 +42,7 @@ class ExpenseRepository
             account_id: $data->account_id,
             balanceable_type: $expense::class,
             balanceable_id: $expense->id,
+            created_at: $data->created_at,
         );
 
         $this->balanceRepository->store($balanceData);
@@ -133,13 +141,5 @@ class ExpenseRepository
         $dailyPct = round(($totalExpenseToday * 100) / $dailyLimit, 2) ?? 0;
 
         return $dailyPct;
-    }
-
-    public function lastMoves(): Collection
-    {
-        return Expense::whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
-            ->latest()
-            ->take(10)
-            ->get();
     }
 }
