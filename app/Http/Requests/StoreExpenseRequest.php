@@ -27,6 +27,8 @@ class StoreExpenseRequest extends FormRequest
             'description' => 'required|string',
             'budget_id' => 'required|integer|exists:budgets,id',
             'account_id' => 'required|integer|exists:accounts,id',
+            'client_id' => 'sometimes|nullable|uuid',
+            'created_at' => 'sometimes|nullable|date',
         ];
     }
 }

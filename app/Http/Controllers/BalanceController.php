@@ -6,7 +6,6 @@ use App\Http\Requests\IndexBalanceRequest;
 use App\Repositories\BalanceRepository;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 
 class BalanceController extends Controller
 {
@@ -16,7 +15,6 @@ class BalanceController extends Controller
     {
         $order = $request->input('order', 'desc');
 
-        
         if ($request->has('group_by')) {
             if ($request->input('group_by') === 'created_at') {
                 // prepare dates
@@ -34,7 +32,11 @@ class BalanceController extends Controller
                 $order,
             );
         } else {
-            $response = $this->balanceRepository->get($order);
+            $response = $this->balanceRepository->filterByRangeAndType(
+                $request->input('range'),
+                $request->input('type'),
+                $order,
+            );
         }
 
         return response()->json($response);

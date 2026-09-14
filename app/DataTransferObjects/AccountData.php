@@ -11,6 +11,7 @@ final readonly class AccountData
         public AccountTypeEnum $type,
         public float $amount,
         public bool $hidden,
+        public ?string $client_id = null,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -20,6 +21,7 @@ final readonly class AccountData
             type: AccountTypeEnum::from($data['type']),
             amount: (float) $data['amount'],
             hidden: (bool) $data['hidden'],
+            client_id: $data['client_id'] ?? null,
         );
     }
 
@@ -33,6 +35,7 @@ final readonly class AccountData
             'type' => $this->type->value,
             'amount' => $this->amount,
             'hidden' => $this->hidden,
+            'client_id' => $this->client_id,
         ];
     }
 }

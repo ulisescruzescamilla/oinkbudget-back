@@ -6,28 +6,36 @@ use App\DataTransferObjects\BalanceData;
 use App\Models\Balance;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Log;
 
 class BalanceRepository
 {
-    public function get(string $order = 'desc'): Collection
+    public function filterByRangeAndType(?string $range, ?string $type, string $order = 'desc'): Collection
     {
-        return Balance::query()
-            ->with('account')
-            //->whereDate('created_at', today())
-            ->orderBy('created_at', $order)
-            ->get();
+        $query = Balance::query()->with('account');
+
+        match ($range ?? 'today') {
+            'today' => $query->whereDate('created_at', today()),
+            'week' => $query->whereDate('created_at', '>=', today()->subDays(6)),
+            'month' => $query->whereDate('created_at', '>=', today()->subDays(29)),
+            default => null,
+        };
+
+        if ($type && $type !== 'all') {
+            $query->where('type', $type);
+        }
+
+        return $query->orderBy('created_at', $order)->get();
     }
 
     public function groupByDate(Carbon $startDate, Carbon $endDate): \Illuminate\Support\Collection
     {
         // today query by default
-        if (!$startDate || !$endDate) {
+        if (! $startDate || ! $endDate) {
             $startDate = Carbon::now()->startOfDay();
             $endDate = Carbon::now()->endOfDay();
         }
 
-        $collection =  Balance::query()
+        $collection = Balance::query()
             ->with('account')
             ->whereBetween('created_at', [$startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->orderBy('created_at', 'desc')
@@ -46,6 +54,17 @@ class BalanceRepository
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
             ->orderBy('created_at', $order)
+            ->get();
+    }
+
+    public function lastMoves(int $limit = 10): Collection
+    {
+        return Balance::query()
+            ->with('account')
+            ->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->take($limit)
             ->get();
     }
 

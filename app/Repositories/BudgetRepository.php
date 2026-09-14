@@ -36,6 +36,14 @@ class BudgetRepository
 
     public function store(BudgetData $data): Budget
     {
+        if ($data->client_id) {
+            $existing = Budget::query()->where('client_id', $data->client_id)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         $limits = $this->limitCalculator->calculate(
             $data->max_limit,
             $data->percentage_value,

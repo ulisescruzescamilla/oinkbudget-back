@@ -27,6 +27,7 @@ class StoreAccountRequest extends FormRequest
             'type' => 'string|in:cash,debit_card,credit_card|required',
             'amount' => 'numeric|required',
             'hidden' => 'boolean|required',
+            'client_id' => 'sometimes|nullable|uuid',
         ];
     }
 }

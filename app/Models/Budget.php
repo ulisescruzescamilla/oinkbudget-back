@@ -21,6 +21,7 @@ class Budget extends Model
         'start_date',
         'end_date',
         'category_id',
+        'client_id',
     ];
 
     public function category(): BelongsTo

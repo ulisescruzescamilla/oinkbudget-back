@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\BalanceRepository;
 use App\Repositories\BudgetRepository;
 use App\Repositories\ExpenseRepository;
 use Illuminate\Http\Request;
@@ -12,19 +13,23 @@ class DashboardController extends Controller
 
     protected ExpenseRepository $expenseRepository;
 
+    protected BalanceRepository $balanceRepository;
+
     public function __construct(
         BudgetRepository $budgetRepository,
-        ExpenseRepository $expenseRepository
+        ExpenseRepository $expenseRepository,
+        BalanceRepository $balanceRepository
     ) {
         $this->budgetRepository = $budgetRepository;
         $this->expenseRepository = $expenseRepository;
+        $this->balanceRepository = $balanceRepository;
     }
 
     public function index(Request $request)
     {
         $totalExpenseToday = $this->expenseRepository->getExpenseToday();
 
-        $lastMoves = $this->expenseRepository->lastMoves();
+        $lastMoves = $this->balanceRepository->lastMoves();
 
         $dailyLimit = $this->budgetRepository->getDailyLimit();
 

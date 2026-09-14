@@ -3,6 +3,7 @@
 namespace App\DataTransferObjects;
 
 use App\Enums\BalanceTypeEnum;
+use Carbon\Carbon;
 
 final readonly class BalanceData
 {
@@ -14,6 +15,7 @@ final readonly class BalanceData
         public int $account_id,
         public ?string $balanceable_type = null,
         public ?int $balanceable_id = null,
+        public ?string $created_at = null,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -26,6 +28,7 @@ final readonly class BalanceData
             account_id: (int) $data['account_id'],
             balanceable_type: $data['balanceable_type'] ?? null,
             balanceable_id: isset($data['balanceable_id']) ? (int) $data['balanceable_id'] : null,
+            created_at: $data['created_at'] ?? null,
         );
     }
 
@@ -34,7 +37,7 @@ final readonly class BalanceData
      */
     public function toArray(): array
     {
-        return [
+        $data = [
             'description' => $this->description,
             'amount' => $this->amount,
             'type' => $this->type->value,
@@ -43,5 +46,11 @@ final readonly class BalanceData
             'balanceable_type' => $this->balanceable_type,
             'balanceable_id' => $this->balanceable_id,
         ];
+
+        if ($this->created_at !== null) {
+            $data['created_at'] = Carbon::parse($this->created_at);
+        }
+
+        return $data;
     }
 }

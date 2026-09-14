@@ -23,6 +23,14 @@ class AccountRepository
 
     public function store(AccountData $data): Account
     {
+        if ($data->client_id) {
+            $existing = Account::query()->where('client_id', $data->client_id)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         return Account::query()->create($data->toArray());
     }
 

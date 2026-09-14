@@ -24,7 +24,22 @@ it('maps validated data to typed properties', function () {
         ->and($data->percentage_value)->toBe(50)
         ->and($data->category_id)->toBe(1)
         ->and($data->start_date)->toBe('2026-01-01')
-        ->and($data->end_date)->toBe('2026-01-31');
+        ->and($data->end_date)->toBe('2026-01-31')
+        ->and($data->client_id)->toBeNull();
+});
+
+it('maps a provided client_id', function () {
+    $data = BudgetData::fromValidated([
+        'name' => 'Groceries',
+        'max_limit' => 500,
+        'period' => 'monthly',
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-01-31',
+        'client_id' => '9f6a6f2e-1c9a-4c2e-8f0a-1a2b3c4d5e6f',
+    ]);
+
+    expect($data->client_id)->toBe('9f6a6f2e-1c9a-4c2e-8f0a-1a2b3c4d5e6f')
+        ->and($data->toArray()['client_id'])->toBe('9f6a6f2e-1c9a-4c2e-8f0a-1a2b3c4d5e6f');
 });
 
 it('defaults expense_amount to 0 and is_recurrent to false when absent', function () {
@@ -62,5 +77,6 @@ it('converts back to an array matching Budget::$fillable', function () {
         'start_date' => '2026-01-01',
         'end_date' => '2026-12-31',
         'category_id' => null,
+        'client_id' => null,
     ]);
 });

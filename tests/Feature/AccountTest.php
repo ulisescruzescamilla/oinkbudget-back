@@ -2,8 +2,33 @@
 
 use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
+
+it('creates an account', function () {
+    $data = Account::factory()->make()->toArray();
+
+    $this->postJson('/api/accounts', $data)
+        ->assertCreated()
+        ->assertJsonFragment(['name' => $data['name']]);
+
+    $this->assertDatabaseHas('accounts', ['name' => $data['name']]);
+});
+
+it('returns the existing account when client_id is duplicated', function () {
+    $data = Account::factory()->make()->toArray();
+    $data['client_id'] = (string) Str::uuid();
+
+    $firstResponse = $this->postJson('/api/accounts', $data)->assertCreated();
+    $secondResponse = $this->postJson('/api/accounts', $data)->assertCreated();
+
+    $firstId = json_decode($firstResponse->getContent(), true)['id'];
+    $secondId = json_decode($secondResponse->getContent(), true)['id'];
+
+    expect($secondId)->toBe($firstId);
+    $this->assertDatabaseCount('accounts', 1);
+});
 
 it('soft deletes an account', function () {
     $account = Account::factory()->create();

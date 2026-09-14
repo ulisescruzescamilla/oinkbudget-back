@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Balance extends Model
 {
@@ -22,13 +22,14 @@ class Balance extends Model
         'account_id',
         'balanceable_type',
         'balanceable_id',
+        'created_at',
     ];
 
     protected $hidden = [
         'updated_at',
         'deleted_at',
         'balanceable_id',
-        'balanceable_type'
+        'balanceable_type',
     ];
 
     public function casts(): array
@@ -49,8 +50,6 @@ class Balance extends Model
             ],
         );
     }
-
-
 
     public function account(): BelongsTo
     {
