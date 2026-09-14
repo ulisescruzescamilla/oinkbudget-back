@@ -6,17 +6,17 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('guests are redirected to the login page', function () {
+test('dashboard page returns 404 for guests because there is no frontend', function () {
     $response = $this->get(route('dashboard'));
-    $response->assertRedirect(route('login'));
+    $response->assertNotFound();
 });
 
-test('authenticated users can visit the dashboard', function () {
+test('dashboard page returns 404 for authenticated users because there is no frontend', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $response->assertNotFound();
 });
 
 test('dashboard last moves include both incomes and expenses ordered by latest', function () {

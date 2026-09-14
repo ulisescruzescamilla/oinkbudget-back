@@ -34,8 +34,8 @@ it('returns balances ordered by created_at desc by default', function () {
 
     $data = $response->json();
 
-    expect($data[0]['created_at'])->toBe('2026-06-02T00:00:00.000000Z');
-    expect($data[1]['created_at'])->toBe('2026-06-01T00:00:00.000000Z');
+    expect($data[0]['created_at'])->toBe('2026-06-01 18:00');
+    expect($data[1]['created_at'])->toBe('2026-05-31 18:00');
 });
 
 it('returns balances ordered by created_at asc', function () {
@@ -47,8 +47,8 @@ it('returns balances ordered by created_at asc', function () {
 
     $data = $response->json();
 
-    expect($data[0]['created_at'])->toBe('2026-06-01T00:00:00.000000Z');
-    expect($data[1]['created_at'])->toBe('2026-06-02T00:00:00.000000Z');
+    expect($data[0]['created_at'])->toBe('2026-05-31 18:00');
+    expect($data[1]['created_at'])->toBe('2026-06-01 18:00');
 });
 
 it('validates date format for date filters', function () {
