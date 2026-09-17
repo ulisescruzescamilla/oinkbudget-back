@@ -17,6 +17,8 @@ class IndexBalanceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // start_date/end_date are bare UTC calendar dates (a range filter),
+            // distinct from `created_at`'s full-instant-with-offset contract.
             'start_date' => 'nullable|date|date_format:Y-m-d',
             'end_date' => 'nullable|date|date_format:Y-m-d',
             'order' => 'nullable|in:asc,desc',

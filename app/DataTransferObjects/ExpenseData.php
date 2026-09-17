@@ -41,7 +41,7 @@ final readonly class ExpenseData
         ];
 
         if ($this->created_at !== null) {
-            $data['created_at'] = Carbon::parse($this->created_at);
+            $data['created_at'] = Carbon::parse($this->created_at)->utc();
         }
 
         return $data;

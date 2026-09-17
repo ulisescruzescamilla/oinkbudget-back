@@ -27,6 +27,13 @@ class BalanceRepository
         return $query->orderBy('created_at', $order)->get();
     }
 
+    /**
+     * Groups balances by their UTC calendar day (Y-m-d substring of the UTC
+     * `created_at`). The mobile client does not use this endpoint's
+     * `group_by` grouping today — it fetches the flat, filtered list and
+     * groups by calendar day itself, anchored to its own display timezone.
+     * Do not reintroduce a hardcoded display-timezone conversion here.
+     */
     public function groupByDate(Carbon $startDate, Carbon $endDate): \Illuminate\Support\Collection
     {
         // today query by default

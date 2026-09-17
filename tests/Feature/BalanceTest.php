@@ -25,7 +25,7 @@ it('filters balances by date range', function () {
         ->assertJsonCount(2);
 });
 
-it('returns balances ordered by created_at desc by default', function () {
+it('returns balances ordered by created_at desc by default, as unshifted UTC ISO-8601', function () {
     Balance::factory()->create(['created_at' => '2026-06-01']);
     Balance::factory()->create(['created_at' => '2026-06-02']);
 
@@ -34,8 +34,8 @@ it('returns balances ordered by created_at desc by default', function () {
 
     $data = $response->json();
 
-    expect($data[0]['created_at'])->toBe('2026-06-01 18:00');
-    expect($data[1]['created_at'])->toBe('2026-05-31 18:00');
+    expect($data[0]['created_at'])->toBe(Carbon::parse('2026-06-02')->toJSON());
+    expect($data[1]['created_at'])->toBe(Carbon::parse('2026-06-01')->toJSON());
 });
 
 it('returns balances ordered by created_at asc', function () {
@@ -47,8 +47,21 @@ it('returns balances ordered by created_at asc', function () {
 
     $data = $response->json();
 
-    expect($data[0]['created_at'])->toBe('2026-05-31 18:00');
-    expect($data[1]['created_at'])->toBe('2026-06-01 18:00');
+    expect($data[0]['created_at'])->toBe(Carbon::parse('2026-06-01')->toJSON());
+    expect($data[1]['created_at'])->toBe(Carbon::parse('2026-06-02')->toJSON());
+});
+
+it('groups a Mexico-City-evening transaction under the next UTC calendar day', function () {
+    // 2026-06-01 22:00 America/Mexico_City (UTC-6) is 2026-06-02 04:00 UTC.
+    $localEvening = Carbon::parse('2026-06-01 22:00:00', 'America/Mexico_City');
+
+    Balance::factory()->create(['created_at' => $localEvening->copy()->utc()]);
+
+    $response = $this->getJson('/api/balances?start_date=2026-06-02&end_date=2026-06-02')
+        ->assertOk()
+        ->assertJsonCount(1);
+
+    expect($response->json('0.created_at'))->toBe($localEvening->copy()->utc()->toJSON());
 });
 
 it('validates date format for date filters', function () {

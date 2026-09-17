@@ -82,6 +82,41 @@ it('preserves an offline-provided created_at on the income and its balance recor
     expect($balance->getRawOriginal('created_at'))->toBe($backdated->toDateTimeString());
 });
 
+it('normalizes an offline-provided created_at with a non-UTC offset to the correct UTC instant', function () {
+    $account = Account::factory()->create();
+    $backdated = now()->subDays(3)->startOfSecond();
+
+    $data = [
+        'amount' => 750.00,
+        'description' => 'Offline freelance payment (local offset)',
+        'account_id' => $account->id,
+        'created_at' => $backdated->copy()->setTimezone('America/Mexico_City')->toIso8601String(),
+    ];
+
+    $response = $this->postJson('/api/incomes', $data)->assertCreated();
+    $incomeId = $response->json('id');
+
+    $this->assertDatabaseHas('incomes', [
+        'id' => $incomeId,
+        'created_at' => $backdated->toDateTimeString(),
+    ]);
+});
+
+it('rejects a bare date created_at without an explicit offset', function () {
+    $account = Account::factory()->create();
+
+    $data = [
+        'amount' => 300.00,
+        'description' => 'Freelance',
+        'account_id' => $account->id,
+        'created_at' => '2026-06-29',
+    ];
+
+    $this->postJson('/api/incomes', $data)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['created_at']);
+});
+
 it('defaults created_at to now when not provided', function () {
     $account = Account::factory()->create();
 

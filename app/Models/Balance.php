@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,18 +35,6 @@ class Balance extends Model
         return [
             'amount' => 'decimal:3',
         ];
-    }
-
-    protected function createdAt(): Attribute
-    {
-        return Attribute::make(
-            // Get value using Mexico city timezone
-            get: fn (mixed $value) => Carbon::parse($value)->timezone('America/Mexico_city')->format('Y-m-d H:i'),
-            // Save UTC from config
-            set: fn ($value) => [
-                'created_at' => $value,
-            ],
-        );
     }
 
     public function account(): BelongsTo
