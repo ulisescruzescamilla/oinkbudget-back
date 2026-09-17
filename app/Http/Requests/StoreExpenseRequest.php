@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\Iso8601Offset;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,7 +29,7 @@ class StoreExpenseRequest extends FormRequest
             'budget_id' => 'required|integer|exists:budgets,id',
             'account_id' => 'required|integer|exists:accounts,id',
             'client_id' => 'sometimes|nullable|uuid',
-            'created_at' => 'sometimes|nullable|date',
+            'created_at' => ['sometimes', 'nullable', 'date', new Iso8601Offset],
         ];
     }
 }

@@ -55,3 +55,14 @@ it('parses a provided created_at into the array', function () {
     expect($data->created_at)->toBe('2026-06-01T10:00:00+00:00')
         ->and($data->toArray()['created_at']->toIso8601String())->toBe('2026-06-01T10:00:00+00:00');
 });
+
+it('normalizes a non-UTC offset in created_at to UTC', function () {
+    $data = IncomeData::fromValidated([
+        'amount' => '1500',
+        'description' => 'Monthly salary',
+        'account_id' => '4',
+        'created_at' => '2026-06-01T10:00:00-06:00',
+    ]);
+
+    expect($data->toArray()['created_at']->toIso8601String())->toBe('2026-06-01T16:00:00+00:00');
+});

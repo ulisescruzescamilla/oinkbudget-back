@@ -37,8 +37,8 @@ class Budget extends Model
             'percentage_value' => 'integer',
             'start_date' => 'date:Y-m-d',
             'end_date' => 'date:Y-m-d',
-            'created_at' => 'datetime: Y-m-d H:m',
-            'updated_at' => 'datetime: Y-m-d H:m',
+            'created_at' => 'datetime:Y-m-d H:i',
+            'updated_at' => 'datetime:Y-m-d H:i',
             'is_recurrent' => 'boolean',
             'is_active' => 'boolean',
         ];

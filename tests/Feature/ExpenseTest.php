@@ -91,6 +91,45 @@ it('preserves an offline-provided created_at on the expense and its balance reco
     expect($balance->getRawOriginal('created_at'))->toBe($backdated->toDateTimeString());
 });
 
+it('normalizes an offline-provided created_at with a non-UTC offset to the correct UTC instant', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create();
+    $backdated = now()->subDays(3)->startOfSecond();
+
+    $data = [
+        'amount' => 42.50,
+        'description' => 'Offline groceries (local offset)',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+        'created_at' => $backdated->copy()->setTimezone('America/Mexico_City')->toIso8601String(),
+    ];
+
+    $response = $this->postJson('/api/expenses', $data)->assertCreated();
+    $expenseId = $response->json('id');
+
+    $this->assertDatabaseHas('expenses', [
+        'id' => $expenseId,
+        'created_at' => $backdated->toDateTimeString(),
+    ]);
+});
+
+it('rejects a bare date created_at without an explicit offset', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create();
+
+    $data = [
+        'amount' => 20.00,
+        'description' => 'Coffee',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+        'created_at' => '2026-06-29',
+    ];
+
+    $this->postJson('/api/expenses', $data)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['created_at']);
+});
+
 it('defaults created_at to now when not provided', function () {
     $budget = Budget::factory()->create();
     $account = Account::factory()->create();
