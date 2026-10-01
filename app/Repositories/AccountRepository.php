@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\DataTransferObjects\AccountData;
 use App\Models\Account;
+use Illuminate\Support\Facades\DB;
 
 class AccountRepository
 {
@@ -14,11 +15,13 @@ class AccountRepository
 
     public function transfer(Account $accountFrom, Account $accountTo, float $amount): void
     {
-        $accountFrom->amount = $accountFrom->amount - $amount;
-        $accountTo->amount = $accountTo->amount + $amount;
+        DB::transaction(function () use ($accountFrom, $accountTo, $amount) {
+            $accountFrom->amount = $accountFrom->amount - $amount;
+            $accountTo->amount = $accountTo->amount + $amount;
 
-        $accountFrom->save();
-        $accountTo->save();
+            $accountFrom->save();
+            $accountTo->save();
+        });
     }
 
     public function store(AccountData $data): Account

@@ -66,3 +66,45 @@ it('returns the restored account in the response', function () {
 it('returns 404 when restoring a non-existent account', function () {
     $this->postJson('/api/accounts/999/restore')->assertNotFound();
 });
+
+it('transfers an amount between two accounts', function () {
+    $from = Account::factory()->create(['amount' => 500]);
+    $to = Account::factory()->create(['amount' => 100]);
+
+    $this->postJson('/api/accounts/transfer', [
+        'account_from' => $from->id,
+        'account_to' => $to->id,
+        'amount' => 150.5,
+    ])->assertOk();
+
+    $this->assertDatabaseHas('accounts', ['id' => $from->id, 'amount' => 349.5]);
+    $this->assertDatabaseHas('accounts', ['id' => $to->id, 'amount' => 250.5]);
+});
+
+it('rejects a transfer with missing fields', function () {
+    $this->postJson('/api/accounts/transfer', [])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['account_from', 'account_to', 'amount']);
+});
+
+it('rejects a transfer to the same account', function () {
+    $account = Account::factory()->create(['amount' => 500]);
+
+    $this->postJson('/api/accounts/transfer', [
+        'account_from' => $account->id,
+        'account_to' => $account->id,
+        'amount' => 50,
+    ])->assertUnprocessable()->assertJsonValidationErrors(['account_to']);
+
+    $this->assertDatabaseHas('accounts', ['id' => $account->id, 'amount' => 500]);
+});
+
+it('rejects a transfer to an account that does not exist', function () {
+    $from = Account::factory()->create(['amount' => 500]);
+
+    $this->postJson('/api/accounts/transfer', [
+        'account_from' => $from->id,
+        'account_to' => 999,
+        'amount' => 50,
+    ])->assertUnprocessable()->assertJsonValidationErrors(['account_to']);
+});

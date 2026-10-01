@@ -36,9 +36,12 @@ class AccountController extends Controller
         return response()->json($account);
     }
 
-    public function transfer(TransferAccountRequest $request)
+    public function transfer(TransferAccountRequest $request): JsonResponse
     {
-        $this->accountRepository->transfer($request->input('account_from'), $request->input('account_to'), $request->input('amount'));
+        $accountFrom = Account::query()->findOrFail($request->integer('account_from'));
+        $accountTo = Account::query()->findOrFail($request->integer('account_to'));
+
+        $this->accountRepository->transfer($accountFrom, $accountTo, $request->float('amount'));
 
         return response()->json([], 200);
     }
