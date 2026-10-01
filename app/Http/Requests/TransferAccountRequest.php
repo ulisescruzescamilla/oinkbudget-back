@@ -24,7 +24,7 @@ class TransferAccountRequest extends FormRequest
     {
         return [
             'account_from' => 'required|numeric|exists:accounts,id',
-            'account_to' => 'required|numeric|exists:accounts,id',
+            'account_to' => 'required|numeric|different:account_from|exists:accounts,id',
             'amount' => 'required|numeric|min:1',
         ];
     }
