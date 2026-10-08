@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Balance;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -20,6 +21,8 @@ test('dashboard page returns 404 for authenticated users because there is no fro
 });
 
 test('dashboard last moves include both incomes and expenses ordered by latest', function () {
+    $this->travelTo(now()->setTime(12, 0));
+
     $older = Balance::factory()->create([
         'type' => 'expense',
         'created_at' => now()->subHours(2),
@@ -40,6 +43,8 @@ test('dashboard last moves include both incomes and expenses ordered by latest',
 });
 
 test('dashboard last moves are capped at the ten most recent records', function () {
+    $this->travelTo(now()->setTime(12, 0));
+
     Balance::factory()->count(12)->sequence(fn ($sequence) => [
         'created_at' => now()->subMinutes($sequence->index),
     ])->create();
@@ -47,4 +52,29 @@ test('dashboard last moves are capped at the ten most recent records', function 
     $response = $this->getJson('/api/dashboard')->assertOk();
 
     expect($response->json('last_moves'))->toHaveCount(10);
+});
+
+test('dashboard last moves exclude soft deleted balances', function () {
+    $this->travelTo(now()->setTime(12, 0));
+
+    $kept = Balance::factory()->create(['created_at' => now()->subHour()]);
+    $deleted = Balance::factory()->create(['created_at' => now()->subMinutes(30)]);
+    $deleted->delete();
+
+    $response = $this->getJson('/api/dashboard')->assertOk();
+
+    expect($response->json('last_moves'))->toHaveCount(1)
+        ->and($response->json('last_moves.0.id'))->toBe($kept->id);
+});
+
+test('dashboard totals exclude soft deleted expenses', function () {
+    $this->travelTo(now()->setTime(12, 0));
+
+    Expense::factory()->create(['amount' => 100]);
+    Expense::factory()->create(['amount' => 40])->delete();
+
+    $response = $this->getJson('/api/dashboard')->assertOk();
+
+    expect((float) $response->json('total_expense_today'))->toBe(100.0)
+        ->and((float) collect($response->json('trend'))->last()['v'])->toBe(100.0);
 });

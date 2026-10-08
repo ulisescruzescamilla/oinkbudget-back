@@ -26,7 +26,6 @@ class Balance extends Model
     protected $hidden = [
         'updated_at',
         'deleted_at',
-        'balanceable_id',
         'balanceable_type',
     ];
 

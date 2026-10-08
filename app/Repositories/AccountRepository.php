@@ -24,6 +24,24 @@ class AccountRepository
         });
     }
 
+    /**
+     * Add the given amount to the account, including soft-deleted accounts
+     * so their amount is still correct if they are restored.
+     */
+    public function deposit(int $accountId, float $amount): void
+    {
+        Account::query()->withTrashed()->whereKey($accountId)->increment('amount', $amount);
+    }
+
+    /**
+     * Subtract the given amount from the account, including soft-deleted accounts
+     * so their amount is still correct if they are restored.
+     */
+    public function withdraw(int $accountId, float $amount): void
+    {
+        Account::query()->withTrashed()->whereKey($accountId)->decrement('amount', $amount);
+    }
+
     public function store(AccountData $data): Account
     {
         if ($data->client_id) {

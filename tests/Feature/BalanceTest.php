@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\Account;
 use App\Models\Balance;
+use App\Models\Budget;
+use App\Models\Expense;
+use App\Models\Income;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -158,4 +162,103 @@ it('includes account relationship', function () {
     $data = $response->json();
 
     expect($data[0])->toHaveKey('account');
+});
+
+it('soft deletes a balance', function () {
+    $balance = Balance::factory()->create();
+
+    $this->deleteJson("/api/balances/{$balance->id}")->assertSuccessful();
+
+    $this->assertSoftDeleted('balances', ['id' => $balance->id]);
+    expect(Balance::query()->find($balance->id))->toBeNull()
+        ->and(Balance::withTrashed()->find($balance->id))->not->toBeNull();
+});
+
+it('returns 404 when deleting a non-existent balance', function () {
+    $this->deleteJson('/api/balances/999')->assertNotFound();
+});
+
+it('returns 404 when deleting an already soft deleted balance', function () {
+    $balance = Balance::factory()->create();
+    $balance->delete();
+
+    $this->deleteJson("/api/balances/{$balance->id}")->assertNotFound();
+});
+
+it('excludes soft deleted balances from the list', function () {
+    $kept = Balance::factory()->create(['created_at' => Carbon::today()]);
+    Balance::factory()->create(['created_at' => Carbon::today()])->delete();
+
+    $response = $this->getJson('/api/balances')
+        ->assertOk()
+        ->assertJsonCount(1);
+
+    expect($response->json('0.id'))->toBe($kept->id);
+});
+
+it('excludes soft deleted balances from date and range filters', function (string $query) {
+    Balance::factory()->create(['created_at' => Carbon::today()]);
+    Balance::factory()->create(['created_at' => Carbon::today()])->delete();
+
+    $this->getJson("/api/balances?{$query}")
+        ->assertOk()
+        ->assertJsonCount(1);
+})->with([
+    'range=all' => 'range=all',
+    'range=week' => 'range=week',
+    'date range' => fn () => 'start_date='.Carbon::today()->toDateString().'&end_date='.Carbon::today()->toDateString(),
+]);
+
+it('soft deletes the related expense when its balance is deleted', function () {
+    $expenseId = $this->postJson('/api/expenses', [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => Budget::factory()->create()->id,
+        'account_id' => Account::factory()->create()->id,
+    ])->json('id');
+
+    $balance = Expense::query()->findOrFail($expenseId)->balance;
+
+    $this->deleteJson("/api/balances/{$balance->id}")->assertSuccessful();
+
+    $this->assertSoftDeleted('balances', ['id' => $balance->id]);
+    $this->assertSoftDeleted('expenses', ['id' => $expenseId]);
+});
+
+it('soft deletes the related income when its balance is deleted', function () {
+    $incomeId = $this->postJson('/api/incomes', [
+        'amount' => 100,
+        'description' => 'Freelance',
+        'account_id' => Account::factory()->create()->id,
+    ])->json('id');
+
+    $balance = Income::query()->findOrFail($incomeId)->balance;
+
+    $this->deleteJson("/api/balances/{$balance->id}")->assertSuccessful();
+
+    $this->assertSoftDeleted('balances', ['id' => $balance->id]);
+    $this->assertSoftDeleted('incomes', ['id' => $incomeId]);
+});
+
+it('only soft deletes the income or expense that belongs to the deleted balance', function () {
+    $account = Account::factory()->create();
+
+    $deletedId = $this->postJson('/api/incomes', [
+        'amount' => 100,
+        'description' => 'Freelance',
+        'account_id' => $account->id,
+    ])->json('id');
+    $keptId = $this->postJson('/api/incomes', [
+        'amount' => 50,
+        'description' => 'Salary',
+        'account_id' => $account->id,
+    ])->json('id');
+
+    $balance = Income::query()->findOrFail($deletedId)->balance;
+
+    $this->deleteJson("/api/balances/{$balance->id}")->assertSuccessful();
+
+    $this->assertSoftDeleted('incomes', ['id' => $deletedId]);
+    $this->assertNotSoftDeleted('incomes', ['id' => $keptId]);
+    expect(Income::query()->findOrFail($keptId)->balance)->not->toBeNull();
 });
