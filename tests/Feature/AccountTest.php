@@ -16,6 +16,37 @@ it('creates an account', function () {
     $this->assertDatabaseHas('accounts', ['name' => $data['name']]);
 });
 
+it('creates an account of each type', function (string $type) {
+    $data = Account::factory()->make(['type' => $type])->toArray();
+
+    $this->postJson('/api/accounts', $data)
+        ->assertCreated()
+        ->assertJsonFragment(['type' => $type]);
+
+    $this->assertDatabaseHas('accounts', ['name' => $data['name'], 'type' => $type]);
+})->with(['cash', 'debit_card', 'credit_card', 'investment', 'bank']);
+
+it('updates an account to each type', function (string $type) {
+    $account = Account::factory()->create(['type' => 'cash']);
+
+    $this->putJson("/api/accounts/{$account->id}", [
+        'name' => $account->name,
+        'type' => $type,
+        'amount' => $account->amount,
+        'hidden' => $account->hidden,
+    ])->assertSuccessful()->assertJsonFragment(['type' => $type]);
+
+    $this->assertDatabaseHas('accounts', ['id' => $account->id, 'type' => $type]);
+})->with(['investment', 'bank']);
+
+it('rejects an account with an unknown type', function () {
+    $data = Account::factory()->make(['type' => 'crypto'])->toArray();
+
+    $this->postJson('/api/accounts', $data)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['type']);
+});
+
 it('returns the existing account when client_id is duplicated', function () {
     $data = Account::factory()->make()->toArray();
     $data['client_id'] = (string) Str::uuid();
