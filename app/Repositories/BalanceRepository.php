@@ -89,7 +89,7 @@ class BalanceRepository
 
     public function delete(Balance $balance): void
     {
-        $balance->balanceable()->delete();
+        $balance->balanceable?->delete();
         $balance->delete();
     }
 }

@@ -320,3 +320,70 @@ it('gives the expense amount back to the account on delete', function () {
 
     expect($account->refresh()->amount)->toBe('1000.00');
 });
+
+it('keeps the expense row in the database when it is soft deleted', function () {
+    $expense = Expense::factory()->create();
+
+    $this->deleteJson("/api/expenses/{$expense->id}")->assertNoContent();
+
+    $this->assertSoftDeleted('expenses', ['id' => $expense->id]);
+    expect(Expense::query()->find($expense->id))->toBeNull()
+        ->and(Expense::withTrashed()->find($expense->id))->not->toBeNull();
+});
+
+it('excludes soft deleted expenses from the list', function () {
+    $kept = Expense::factory()->create();
+    Expense::factory()->create()->delete();
+
+    $response = $this->getJson('/api/expenses')
+        ->assertOk()
+        ->assertJsonCount(1);
+
+    expect($response->json('0.id'))->toBe($kept->id);
+});
+
+it('soft deletes the balance record when its expense is deleted', function () {
+    $expenseId = $this->postJson('/api/expenses', [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => Budget::factory()->create()->id,
+        'account_id' => Account::factory()->create()->id,
+    ])->json('id');
+
+    $balance = Expense::query()->findOrFail($expenseId)->balance;
+
+    $this->deleteJson("/api/expenses/{$expenseId}")->assertNoContent();
+
+    $this->assertSoftDeleted('expenses', ['id' => $expenseId]);
+    $this->assertSoftDeleted('balances', ['id' => $balance->id]);
+});
+
+it('returns 404 when updating or deleting a soft deleted expense', function () {
+    $expense = Expense::factory()->create();
+    $expense->delete();
+
+    $this->putJson("/api/expenses/{$expense->id}", [
+        'amount' => 100.00,
+        'description' => 'Test',
+        'budget_id' => $expense->budget_id,
+        'account_id' => $expense->account_id,
+    ])->assertNotFound();
+
+    $this->deleteJson("/api/expenses/{$expense->id}")->assertNotFound();
+});
+
+it('does not give the expense amount back twice when delete is repeated', function () {
+    $account = Account::factory()->create(['amount' => 1000]);
+
+    $expenseId = $this->postJson('/api/expenses', [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => Budget::factory()->create()->id,
+        'account_id' => $account->id,
+    ])->json('id');
+
+    $this->deleteJson("/api/expenses/{$expenseId}")->assertNoContent();
+    $this->deleteJson("/api/expenses/{$expenseId}")->assertNotFound();
+
+    expect($account->refresh()->amount)->toBe('1000.00');
+});

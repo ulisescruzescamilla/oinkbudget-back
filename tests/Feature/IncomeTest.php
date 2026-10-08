@@ -285,3 +285,67 @@ it('removes the income amount from the account on delete', function () {
 
     expect($account->refresh()->amount)->toBe('1000.00');
 });
+
+it('keeps the income row in the database when it is soft deleted', function () {
+    $income = Income::factory()->create();
+
+    $this->deleteJson("/api/incomes/{$income->id}")->assertNoContent();
+
+    $this->assertSoftDeleted('incomes', ['id' => $income->id]);
+    expect(Income::query()->find($income->id))->toBeNull()
+        ->and(Income::withTrashed()->find($income->id))->not->toBeNull();
+});
+
+it('excludes soft deleted incomes from the list', function () {
+    $kept = Income::factory()->create();
+    Income::factory()->create()->delete();
+
+    $response = $this->getJson('/api/incomes')
+        ->assertOk()
+        ->assertJsonCount(1);
+
+    expect($response->json('0.id'))->toBe($kept->id);
+});
+
+it('soft deletes the balance record when its income is deleted', function () {
+    $incomeId = $this->postJson('/api/incomes', [
+        'amount' => 100,
+        'description' => 'Freelance',
+        'account_id' => Account::factory()->create()->id,
+    ])->json('id');
+
+    $balance = Income::query()->findOrFail($incomeId)->balance;
+
+    $this->deleteJson("/api/incomes/{$incomeId}")->assertNoContent();
+
+    $this->assertSoftDeleted('incomes', ['id' => $incomeId]);
+    $this->assertSoftDeleted('balances', ['id' => $balance->id]);
+});
+
+it('returns 404 when updating or deleting a soft deleted income', function () {
+    $income = Income::factory()->create();
+    $income->delete();
+
+    $this->putJson("/api/incomes/{$income->id}", [
+        'amount' => 100.00,
+        'description' => 'Test',
+        'account_id' => $income->account_id,
+    ])->assertNotFound();
+
+    $this->deleteJson("/api/incomes/{$income->id}")->assertNotFound();
+});
+
+it('does not remove the income amount twice when delete is repeated', function () {
+    $account = Account::factory()->create(['amount' => 1000]);
+
+    $incomeId = $this->postJson('/api/incomes', [
+        'amount' => 100,
+        'description' => 'Freelance',
+        'account_id' => $account->id,
+    ])->json('id');
+
+    $this->deleteJson("/api/incomes/{$incomeId}")->assertNoContent();
+    $this->deleteJson("/api/incomes/{$incomeId}")->assertNotFound();
+
+    expect($account->refresh()->amount)->toBe('1000.00');
+});
