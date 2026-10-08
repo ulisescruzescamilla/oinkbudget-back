@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\IndexBalanceRequest;
+use App\Models\Balance;
 use App\Repositories\BalanceRepository;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -40,5 +41,11 @@ class BalanceController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    public function destroy(Balance $balance)
+    {
+        // delete balance and income/expense
+        $this->balanceRepository->delete($balance);
     }
 }

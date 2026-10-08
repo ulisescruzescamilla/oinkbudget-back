@@ -8,12 +8,14 @@ use App\Enums\BalanceTypeEnum;
 use App\Models\Expense;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseRepository
 {
     public function __construct(
         private readonly BudgetRepository $budgetRepository,
         private readonly BalanceRepository $balanceRepository,
+        private readonly AccountRepository $accountRepository,
     ) {}
 
     public function store(ExpenseData $data): Expense
@@ -26,28 +28,32 @@ class ExpenseRepository
             }
         }
 
-        // save expense
-        $expense = Expense::query()->create($data->toArray());
-        // update budget expenses amount
-        $this->budgetRepository->updateBudgetExpenses($expense);
+        return DB::transaction(function () use ($data) {
+            // save expense
+            $expense = Expense::query()->create($data->toArray());
+            // update budget expenses amount
+            $this->budgetRepository->updateBudgetExpenses($expense);
+            // subtract the expense from the account
+            $this->accountRepository->withdraw($expense->account_id, $data->amount);
 
-        // create balance record
-        $account = $expense->account;
+            // create balance record
+            $account = $expense->account;
 
-        $balanceData = new BalanceData(
-            description: $data->description,
-            amount: $data->amount,
-            type: BalanceTypeEnum::EXPENSE,
-            account_name: $account->name,
-            account_id: $data->account_id,
-            balanceable_type: $expense::class,
-            balanceable_id: $expense->id,
-            created_at: $data->created_at,
-        );
+            $balanceData = new BalanceData(
+                description: $data->description,
+                amount: $data->amount,
+                type: BalanceTypeEnum::EXPENSE,
+                account_name: $account->name,
+                account_id: $data->account_id,
+                balanceable_type: $expense::class,
+                balanceable_id: $expense->id,
+                created_at: $data->created_at,
+            );
 
-        $this->balanceRepository->store($balanceData);
+            $this->balanceRepository->store($balanceData);
 
-        return $expense->fresh('balance');
+            return $expense->fresh('balance');
+        });
     }
 
     /**
@@ -82,44 +88,54 @@ class ExpenseRepository
 
     public function update(Expense $expense, ExpenseData $data): Expense
     {
-        $budget = $expense->budget;
+        return DB::transaction(function () use ($expense, $data) {
+            $budget = $expense->budget;
 
-        // remove old amount form this sum
-        $budget->expense_amount = round($budget->expense_amount - $expense->amount, 2);
-        $budget->save();
+            // remove old amount form this sum
+            $budget->expense_amount = round($budget->expense_amount - $expense->amount, 2);
+            $budget->save();
 
-        // update
-        $expense->update($data->toArray());
-        $expense = $expense->fresh(); // refresh collection
-        $this->budgetRepository->updateBudgetExpenses($expense);
+            // give the old amount back to the account it was withdrawn from
+            $this->accountRepository->deposit($expense->account_id, (float) $expense->amount);
 
-        // update balance record
-        $account = $expense->account;
+            // update
+            $expense->update($data->toArray());
+            $expense = $expense->fresh(); // refresh collection
+            $this->budgetRepository->updateBudgetExpenses($expense);
+            $this->accountRepository->withdraw($expense->account_id, $data->amount);
 
-        $balanceData = new BalanceData(
-            description: $data->description,
-            amount: $data->amount,
-            type: BalanceTypeEnum::EXPENSE,
-            account_name: $account->name,
-            account_id: $data->account_id,
-            balanceable_type: $expense::class,
-            balanceable_id: $expense->id,
-        );
+            // update balance record
+            $account = $expense->account;
 
-        if ($expense->balance) {
-            $this->balanceRepository->update($expense->balance, $balanceData);
-        } else {
-            $balance = $this->balanceRepository->store($balanceData);
-            $expense->balance()->save($balance);
-        }
+            $balanceData = new BalanceData(
+                description: $data->description,
+                amount: $data->amount,
+                type: BalanceTypeEnum::EXPENSE,
+                account_name: $account->name,
+                account_id: $data->account_id,
+                balanceable_type: $expense::class,
+                balanceable_id: $expense->id,
+            );
 
-        return $expense->fresh('balance');
+            if ($expense->balance) {
+                $this->balanceRepository->update($expense->balance, $balanceData);
+            } else {
+                $balance = $this->balanceRepository->store($balanceData);
+                $expense->balance()->save($balance);
+            }
+
+            return $expense->fresh('balance');
+        });
     }
 
     public function delete(Expense $expense): void
     {
-        $expense->balance()?->delete();
-        $expense->delete();
+        DB::transaction(function () use ($expense) {
+            $this->accountRepository->deposit($expense->account_id, (float) $expense->amount);
+
+            $expense->balance()?->delete();
+            $expense->delete();
+        });
     }
 
     public function getExpenseToday(): float

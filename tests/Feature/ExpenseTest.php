@@ -208,7 +208,7 @@ it('deletes an expense', function () {
 
     $this->deleteJson("/api/expenses/{$expense->id}")->assertNoContent();
 
-    $this->assertDatabaseMissing('expenses', ['id' => $expense->id]);
+    expect($expense->fresh()->deleted_at)->not->toBeNull();
 });
 
 it('returns 404 when updating a non-existent expense', function () {
@@ -227,4 +227,96 @@ it('returns 404 when updating a non-existent expense', function () {
 
 it('returns 404 when deleting a non-existent expense', function () {
     $this->deleteJson('/api/expenses/999')->assertNotFound();
+});
+
+it('subtracts the expense amount from the selected account on create', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create(['amount' => 1000]);
+
+    $this->postJson('/api/expenses', [
+        'amount' => 250.50,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+    ])->assertCreated();
+
+    expect($account->refresh()->amount)->toBe('749.50');
+});
+
+it('subtracts the expense amount from the account only once when client_id is duplicated', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create(['amount' => 1000]);
+
+    $data = [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+        'client_id' => (string) Str::uuid(),
+    ];
+
+    $this->postJson('/api/expenses', $data)->assertCreated();
+    $this->postJson('/api/expenses', $data)->assertCreated();
+
+    expect($account->refresh()->amount)->toBe('900.00');
+});
+
+it('adjusts the account by the difference when the expense amount is updated', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create(['amount' => 1000]);
+
+    $expenseId = $this->postJson('/api/expenses', [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+    ])->json('id');
+
+    $this->putJson("/api/expenses/{$expenseId}", [
+        'amount' => 300,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+    ])->assertOk();
+
+    expect($account->refresh()->amount)->toBe('700.00');
+});
+
+it('moves the expense amount between accounts when the account is changed on update', function () {
+    $budget = Budget::factory()->create();
+    $oldAccount = Account::factory()->create(['amount' => 1000]);
+    $newAccount = Account::factory()->create(['amount' => 500]);
+
+    $expenseId = $this->postJson('/api/expenses', [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $oldAccount->id,
+    ])->json('id');
+
+    $this->putJson("/api/expenses/{$expenseId}", [
+        'amount' => 150,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $newAccount->id,
+    ])->assertOk();
+
+    expect($oldAccount->refresh()->amount)->toBe('1000.00')
+        ->and($newAccount->refresh()->amount)->toBe('350.00');
+});
+
+it('gives the expense amount back to the account on delete', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create(['amount' => 1000]);
+
+    $expenseId = $this->postJson('/api/expenses', [
+        'amount' => 100,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+    ])->json('id');
+
+    $this->deleteJson("/api/expenses/{$expenseId}")->assertNoContent();
+
+    expect($account->refresh()->amount)->toBe('1000.00');
 });

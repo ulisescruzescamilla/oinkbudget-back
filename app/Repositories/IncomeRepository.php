@@ -6,11 +6,13 @@ use App\DataTransferObjects\BalanceData;
 use App\DataTransferObjects\IncomeData;
 use App\Enums\BalanceTypeEnum;
 use App\Models\Income;
+use Illuminate\Support\Facades\DB;
 
 class IncomeRepository
 {
     public function __construct(
         private readonly BalanceRepository $balanceRepository,
+        private readonly AccountRepository $accountRepository,
     ) {}
 
     public function store(IncomeData $data): Income
@@ -23,56 +25,69 @@ class IncomeRepository
             }
         }
 
-        $income = Income::query()->create($data->toArray());
+        return DB::transaction(function () use ($data) {
+            $income = Income::query()->create($data->toArray());
+            $this->accountRepository->deposit($income->account_id, $data->amount);
 
-        $account = $income->account;
+            $account = $income->account;
 
-        $balanceData = new BalanceData(
-            description: $data->description,
-            amount: $data->amount,
-            type: BalanceTypeEnum::INCOME,
-            account_name: $account->name,
-            account_id: $data->account_id,
-            balanceable_type: $income::class,
-            balanceable_id: $income->id,
-            created_at: $data->created_at,
-        );
+            $balanceData = new BalanceData(
+                description: $data->description,
+                amount: $data->amount,
+                type: BalanceTypeEnum::INCOME,
+                account_name: $account->name,
+                account_id: $data->account_id,
+                balanceable_type: $income::class,
+                balanceable_id: $income->id,
+                created_at: $data->created_at,
+            );
 
-        $balance = $this->balanceRepository->store($balanceData);
+            $this->balanceRepository->store($balanceData);
 
-        return $income->fresh('balance');
+            return $income->fresh('balance');
+        });
     }
 
     public function update(Income $income, IncomeData $data): Income
     {
-        $income->update($data->toArray());
-        $income = $income->fresh();
+        return DB::transaction(function () use ($income, $data) {
+            // revert the old amount from the account it was deposited in
+            $this->accountRepository->withdraw($income->account_id, (float) $income->amount);
 
-        $account = $income->account;
+            $income->update($data->toArray());
+            $income = $income->fresh();
+            $this->accountRepository->deposit($income->account_id, $data->amount);
 
-        $balanceData = new BalanceData(
-            description: $data->description,
-            amount: $data->amount,
-            type: BalanceTypeEnum::INCOME,
-            account_name: $account->name,
-            account_id: $data->account_id,
-            balanceable_type: $income::class,
-            balanceable_id: $income->id,
-        );
+            $account = $income->account;
 
-        if ($income->balance) {
-            $this->balanceRepository->update($income->balance, $balanceData);
-        } else {
-            $balance = $this->balanceRepository->store($balanceData);
-            $income->balance()->save($balance);
-        }
+            $balanceData = new BalanceData(
+                description: $data->description,
+                amount: $data->amount,
+                type: BalanceTypeEnum::INCOME,
+                account_name: $account->name,
+                account_id: $data->account_id,
+                balanceable_type: $income::class,
+                balanceable_id: $income->id,
+            );
 
-        return $income->fresh('balance');
+            if ($income->balance) {
+                $this->balanceRepository->update($income->balance, $balanceData);
+            } else {
+                $balance = $this->balanceRepository->store($balanceData);
+                $income->balance()->save($balance);
+            }
+
+            return $income->fresh('balance');
+        });
     }
 
     public function delete(Income $income): void
     {
-        $income->balance()?->delete();
-        $income->delete();
+        DB::transaction(function () use ($income) {
+            $this->accountRepository->withdraw($income->account_id, (float) $income->amount);
+
+            $income->balance()?->delete();
+            $income->delete();
+        });
     }
 }

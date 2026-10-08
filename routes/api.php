@@ -48,3 +48,4 @@ Route::get('dashboard', [DashboardController::class, 'index']);
 
 // Balances
 Route::get('balances', [BalanceController::class, 'index']);
+Route::delete('balances/{balance}', [BalanceController::class, 'destroy']);
