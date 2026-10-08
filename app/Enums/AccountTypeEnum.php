@@ -11,4 +11,6 @@ enum AccountTypeEnum: string
     case CASH = 'cash';
     case DEBIT_CARD = 'debit_card';
     case CREDIT_CARD = 'credit_card';
+    case INVESTMENT = 'investment';
+    case BANK = 'bank';
 }

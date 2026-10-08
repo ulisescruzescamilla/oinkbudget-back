@@ -24,7 +24,7 @@ class UpdateAccountRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'type' => ['required', 'string', 'in:cash,debit_card,credit_card'],
+            'type' => ['required', 'string', 'in:cash,debit_card,credit_card,investment,bank'],
             'amount' => ['required', 'numeric'],
             'hidden' => ['required', 'boolean'],
         ];
