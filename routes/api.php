@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
+use App\Http\Controllers\RecurrentBudgetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,15 @@ Route::delete('incomes/{income}', [IncomeController::class, 'destroy']);
 
 // Categories
 Route::get('categories', [CategoryController::class, 'index']);
+Route::post('categories', [CategoryController::class, 'store']);
+Route::put('categories/{category}', [CategoryController::class, 'update']);
+Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+
+// Recurrent budgets
+Route::get('recurrent-budgets', [RecurrentBudgetController::class, 'index']);
+Route::post('recurrent-budgets', [RecurrentBudgetController::class, 'store']);
+Route::put('recurrent-budgets/{recurrentBudget}', [RecurrentBudgetController::class, 'update']);
+Route::delete('recurrent-budgets/{recurrentBudget}', [RecurrentBudgetController::class, 'destroy']);
 
 // Dashboard
 Route::get('dashboard', [DashboardController::class, 'index']);
