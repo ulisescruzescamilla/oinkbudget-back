@@ -105,6 +105,23 @@ it('rejects a duplicated name on update', function () {
         ->assertJsonValidationErrors(['name' => 'Ya existe una categoría con ese nombre.']);
 });
 
+it('rejects a duplicated name in a different case on update', function () {
+    Category::factory()->create(['name' => 'Mascotas']);
+    $category = Category::factory()->create(['name' => 'Hogar']);
+
+    $this->putJson("/api/categories/{$category->id}", ['name' => 'MASCOTAS'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['name' => 'Ya existe una categoría con ese nombre.']);
+});
+
+it('allows changing the case of a category own name', function () {
+    $category = Category::factory()->create(['name' => 'Mascotas']);
+
+    $this->putJson("/api/categories/{$category->id}", ['name' => 'MASCOTAS'])
+        ->assertOk()
+        ->assertJsonPath('name', 'MASCOTAS');
+});
+
 it('allows updating a category with its own name', function () {
     $category = Category::factory()->create(['name' => 'Mascotas']);
 

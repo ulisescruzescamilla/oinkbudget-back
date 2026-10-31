@@ -92,6 +92,23 @@ it('updates a recurrent budget', function () {
         ->assertJsonPath('icon_code', 'wifi');
 });
 
+it('rejects a duplicated name in a different case on update', function () {
+    RecurrentBudget::factory()->create(['name' => 'Renta']);
+    $recurrentBudget = RecurrentBudget::factory()->create(['name' => 'Internet']);
+
+    $this->putJson("/api/recurrent-budgets/{$recurrentBudget->id}", ['name' => 'RENTA'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['name' => 'Ya existe un presupuesto recurrente con ese nombre.']);
+});
+
+it('allows changing the case of a recurrent budget own name', function () {
+    $recurrentBudget = RecurrentBudget::factory()->create(['name' => 'Renta']);
+
+    $this->putJson("/api/recurrent-budgets/{$recurrentBudget->id}", ['name' => 'RENTA'])
+        ->assertOk()
+        ->assertJsonPath('name', 'RENTA');
+});
+
 it('allows updating a recurrent budget with its own name', function () {
     $recurrentBudget = RecurrentBudget::factory()->create(['name' => 'Renta']);
 

@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\RecurrentBudget;
+use App\Rules\UniqueCaseInsensitive;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreRecurrentBudgetRequest extends FormRequest
 {
@@ -34,7 +35,7 @@ class StoreRecurrentBudgetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('recurrent_budgets', 'name')->withoutTrashed()],
+            'name' => ['required', 'string', 'max:255', new UniqueCaseInsensitive(RecurrentBudget::class, 'name', 'Ya existe un presupuesto recurrente con ese nombre.')],
             'color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'icon_code' => 'sometimes|string|max:10',
         ];
@@ -51,7 +52,6 @@ class StoreRecurrentBudgetRequest extends FormRequest
             'name.required' => 'El nombre es obligatorio.',
             'name.string' => 'El nombre es obligatorio.',
             'name.max' => 'El nombre no puede tener más de :max caracteres.',
-            'name.unique' => 'Ya existe un presupuesto recurrente con ese nombre.',
         ];
     }
 }
