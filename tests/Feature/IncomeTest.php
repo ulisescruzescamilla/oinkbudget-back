@@ -2,6 +2,7 @@
 
 use App\Models\Account;
 use App\Models\Balance;
+use App\Models\Category;
 use App\Models\Income;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -348,4 +349,37 @@ it('does not remove the income amount twice when delete is repeated', function (
     $this->deleteJson("/api/incomes/{$incomeId}")->assertNotFound();
 
     expect($account->refresh()->amount)->toBe('1000.00');
+});
+
+it('stores and updates the category of an income', function () {
+    $account = Account::factory()->create();
+    $category = Category::factory()->create(['type' => 'income']);
+    $otherCategory = Category::factory()->create(['type' => 'income']);
+
+    $data = [
+        'amount' => 1500,
+        'description' => 'Monthly salary',
+        'account_id' => $account->id,
+        'category_id' => $category->id,
+    ];
+
+    $response = $this->postJson('/api/incomes', $data)
+        ->assertCreated()
+        ->assertJsonFragment(['category_id' => $category->id]);
+
+    $this->putJson('/api/incomes/'.$response->json('id'), [...$data, 'category_id' => $otherCategory->id])
+        ->assertOk()
+        ->assertJsonFragment(['category_id' => $otherCategory->id]);
+});
+
+it('rejects an expense category on an income', function () {
+    $account = Account::factory()->create();
+    $category = Category::factory()->create(['type' => 'expense']);
+
+    $this->postJson('/api/incomes', [
+        'amount' => 1500,
+        'description' => 'Monthly salary',
+        'account_id' => $account->id,
+        'category_id' => $category->id,
+    ])->assertUnprocessable()->assertJsonValidationErrors(['category_id']);
 });

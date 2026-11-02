@@ -15,12 +15,14 @@ it('maps validated data to typed properties and back to an array', function () {
         ->and($data->budget_id)->toBe(3)
         ->and($data->account_id)->toBe(7)
         ->and($data->client_id)->toBeNull()
+        ->and($data->category_id)->toBeNull()
         ->and($data->toArray())->toBe([
             'amount' => 99.99,
             'description' => 'Groceries',
             'budget_id' => 3,
             'account_id' => 7,
             'client_id' => null,
+            'category_id' => null,
         ]);
 });
 
@@ -35,6 +37,19 @@ it('maps a provided client_id', function () {
 
     expect($data->client_id)->toBe('9f6a6f2e-1c9a-4c2e-8f0a-1a2b3c4d5e6f')
         ->and($data->toArray()['client_id'])->toBe('9f6a6f2e-1c9a-4c2e-8f0a-1a2b3c4d5e6f');
+});
+
+it('maps a provided category_id', function () {
+    $data = ExpenseData::fromValidated([
+        'amount' => '99.99',
+        'description' => 'Groceries',
+        'budget_id' => '3',
+        'account_id' => '7',
+        'category_id' => '5',
+    ]);
+
+    expect($data->category_id)->toBe(5)
+        ->and($data->toArray()['category_id'])->toBe(5);
 });
 
 it('omits created_at from the array when not provided', function () {

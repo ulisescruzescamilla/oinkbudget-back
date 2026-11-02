@@ -3,6 +3,7 @@
 use App\Models\Account;
 use App\Models\Balance;
 use App\Models\Budget;
+use App\Models\Category;
 use App\Models\Expense;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -386,4 +387,55 @@ it('does not give the expense amount back twice when delete is repeated', functi
     $this->deleteJson("/api/expenses/{$expenseId}")->assertNotFound();
 
     expect($account->refresh()->amount)->toBe('1000.00');
+});
+
+it('stores and updates the category of an expense', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create();
+    $category = Category::factory()->create(['type' => 'expense']);
+    $otherCategory = Category::factory()->create(['type' => 'expense']);
+
+    $data = [
+        'amount' => 50,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+        'category_id' => $category->id,
+    ];
+
+    $response = $this->postJson('/api/expenses', $data)
+        ->assertCreated()
+        ->assertJsonFragment(['category_id' => $category->id]);
+
+    $this->putJson('/api/expenses/'.$response->json('id'), [...$data, 'category_id' => $otherCategory->id])
+        ->assertOk()
+        ->assertJsonFragment(['category_id' => $otherCategory->id]);
+});
+
+it('allows an expense without a category', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create();
+
+    $this->postJson('/api/expenses', [
+        'amount' => 50,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('expenses', ['description' => 'Groceries', 'category_id' => null]);
+});
+
+it('rejects an income category on an expense', function () {
+    $budget = Budget::factory()->create();
+    $account = Account::factory()->create();
+    $category = Category::factory()->create(['type' => 'income']);
+
+    $this->postJson('/api/expenses', [
+        'amount' => 50,
+        'description' => 'Groceries',
+        'budget_id' => $budget->id,
+        'account_id' => $account->id,
+        'category_id' => $category->id,
+    ])->assertUnprocessable()->assertJsonValidationErrors(['category_id']);
 });
