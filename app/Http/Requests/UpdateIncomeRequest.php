@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateIncomeRequest extends FormRequest
 {
@@ -17,6 +18,7 @@ class UpdateIncomeRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0'],
             'description' => ['required', 'string'],
             'account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'category_id' => ['sometimes', 'nullable', 'integer', Rule::exists('categories', 'id')->where('type', 'income')->withoutTrashed()],
         ];
     }
 }
