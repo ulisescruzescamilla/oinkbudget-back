@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateExpenseRequest extends FormRequest
 {
@@ -27,6 +28,7 @@ class UpdateExpenseRequest extends FormRequest
             'description' => ['required', 'string'],
             'budget_id' => ['required', 'integer', 'exists:budgets,id'],
             'account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'category_id' => ['sometimes', 'nullable', 'integer', Rule::exists('categories', 'id')->where('type', 'expense')->withoutTrashed()],
         ];
     }
 }

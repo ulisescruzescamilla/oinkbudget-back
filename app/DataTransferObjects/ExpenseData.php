@@ -13,6 +13,7 @@ final readonly class ExpenseData
         public int $account_id,
         public ?string $client_id = null,
         public ?string $created_at = null,
+        public ?int $category_id = null,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -24,6 +25,7 @@ final readonly class ExpenseData
             account_id: (int) $data['account_id'],
             client_id: $data['client_id'] ?? null,
             created_at: $data['created_at'] ?? null,
+            category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
         );
     }
 
@@ -38,6 +40,7 @@ final readonly class ExpenseData
             'budget_id' => $this->budget_id,
             'account_id' => $this->account_id,
             'client_id' => $this->client_id,
+            'category_id' => $this->category_id,
         ];
 
         if ($this->created_at !== null) {

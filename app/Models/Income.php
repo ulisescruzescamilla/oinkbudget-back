@@ -16,6 +16,7 @@ class Income extends Model
         'amount',
         'description',
         'account_id',
+        'category_id',
         'client_id',
         'created_at',
     ];
@@ -30,6 +31,11 @@ class Income extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function balance(): MorphOne

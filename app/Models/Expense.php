@@ -17,6 +17,7 @@ class Expense extends Model
         'description',
         'budget_id',
         'account_id',
+        'category_id',
         'client_id',
         'created_at',
     ];
@@ -36,6 +37,11 @@ class Expense extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function balance(): MorphOne
