@@ -23,8 +23,7 @@ class IndexBudgetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => 'nullable|date|date_format:Y-m-d',
-            'end_date' => 'nullable|date|date_format:Y-m-d',
+            'period_id' => 'nullable|integer|exists:periods,id',
         ];
     }
 }

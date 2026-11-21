@@ -47,7 +47,7 @@ it('returns the existing budget when client_id is duplicated', function () {
 it('validates required fields on store', function () {
     $this->postJson('/api/budgets', [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['max_limit', 'expense_amount', 'percentage_value', 'start_date', 'end_date']);
+        ->assertJsonValidationErrors(['max_limit', 'expense_amount', 'percentage_value']);
 });
 
 it('validates percentage_value is between 0 and 100', function () {
@@ -58,17 +58,6 @@ it('validates percentage_value is between 0 and 100', function () {
         ->assertJsonValidationErrors(['percentage_value']);
 });
 
-it('validates end_date is after start_date', function () {
-    $data = Budget::factory()->make([
-        'start_date' => '2026-06-01',
-        'end_date' => '2026-05-01',
-    ])->toArray();
-
-    $this->postJson('/api/budgets', $data)
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['end_date']);
-});
-
 it('updates a budget', function () {
     $budget = Budget::factory()->create();
 
@@ -76,8 +65,6 @@ it('updates a budget', function () {
         'max_limit' => 2000.00,
         'expense_amount' => 500.00,
         'percentage_value' => 25,
-        'start_date' => '2026-02-01',
-        'end_date' => '2026-02-28',
     ];
 
     $this->putJson("/api/budgets/{$budget->id}", $data)
@@ -99,8 +86,6 @@ it('returns 404 when updating a non-existent budget', function () {
         'max_limit' => 1000.00,
         'expense_amount' => 200.00,
         'percentage_value' => 20,
-        'start_date' => '2026-01-01',
-        'end_date' => '2026-01-31',
     ];
 
     $this->putJson('/api/budgets/999', $data)->assertNotFound();
@@ -134,11 +119,7 @@ it('validates category_id must exist in categories table', function () {
 });
 
 it('creates a budget without a category', function () {
-    $data = Budget::factory()->make([
-        'category_id' => null,
-        'start_date' => '2026-01-01',
-        'end_date' => '2026-01-31',
-    ])->toArray();
+    $data = Budget::factory()->make(['category_id' => null])->toArray();
 
     $this->postJson('/api/budgets', $data)
         ->assertCreated();
@@ -151,9 +132,6 @@ it('updates a budget category', function () {
     $data = [
         'name' => $budget->name,
         'max_limit' => $budget->max_limit,
-        'period' => $budget->period,
-        'start_date' => $budget->start_date->format('Y-m-d'),
-        'end_date' => $budget->end_date->format('Y-m-d'),
         'category_id' => $category->id,
     ];
 
@@ -201,4 +179,23 @@ it('updates a budget period', function () {
         'id' => $budget->id,
         'period_id' => $period->id,
     ]);
+});
+
+it('returns only the budgets of the given period', function () {
+    $period = Period::factory()->create();
+    Budget::factory()->count(2)->create(['period_id' => $period->id]);
+    Budget::factory()->create(['period_id' => Period::factory()]);
+    Budget::factory()->create(['period_id' => null]);
+
+    $this->getJson("/api/budgets?period_id={$period->id}")
+        ->assertOk()
+        ->assertJsonCount(2)
+        ->assertJsonPath('0.period_id', $period->id)
+        ->assertJsonPath('1.period_id', $period->id);
+});
+
+it('validates period_id must exist when filtering budgets', function () {
+    $this->getJson('/api/budgets?period_id=9999')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['period_id']);
 });

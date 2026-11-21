@@ -18,12 +18,8 @@ class BudgetController extends Controller
 
     public function index(IndexBudgetRequest $request): JsonResponse
     {
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $response = $this->budgetRepository->filterByDate(
-                $request->input('start_date'),
-                $request->input('end_date')
-            );
-
+        if ($request->filled('period_id')) {
+            $response = $this->budgetRepository->filterByPeriod((int) $request->input('period_id'));
         } else {
             $response = $this->budgetRepository->get();
         }

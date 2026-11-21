@@ -150,7 +150,7 @@ class ExpenseRepository
 
         $dailyLimit = $this->budgetRepository->getDailyLimit();
 
-        if (! $totalExpenseToday) {
+        if (! $totalExpenseToday || ! $dailyLimit) {
             return 0;
         }
 

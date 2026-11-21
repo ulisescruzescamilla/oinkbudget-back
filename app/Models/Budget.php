@@ -13,13 +13,9 @@ class Budget extends Model
     protected $fillable = [
         'name',
         'max_limit',
-        'period',
         'is_recurrent',
-        'is_active',
         'expense_amount',
         'percentage_value',
-        'start_date',
-        'end_date',
         'category_id',
         'period_id',
         'client_id',
@@ -30,12 +26,9 @@ class Budget extends Model
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Named budgetPeriod because the `period` attribute already holds the PeriodEnum frequency.
-     */
-    public function budgetPeriod(): BelongsTo
+    public function period(): BelongsTo
     {
-        return $this->belongsTo(Period::class, 'period_id');
+        return $this->belongsTo(Period::class);
     }
 
     protected function casts(): array
@@ -44,12 +37,9 @@ class Budget extends Model
             'max_limit' => 'decimal:2',
             'expense_amount' => 'decimal:2',
             'percentage_value' => 'integer',
-            'start_date' => 'date:Y-m-d',
-            'end_date' => 'date:Y-m-d',
             'created_at' => 'datetime:Y-m-d H:i',
             'updated_at' => 'datetime:Y-m-d H:i',
             'is_recurrent' => 'boolean',
-            'is_active' => 'boolean',
         ];
     }
 }

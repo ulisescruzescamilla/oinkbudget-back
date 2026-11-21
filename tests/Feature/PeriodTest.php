@@ -141,5 +141,5 @@ it('lists the budgets of a period', function () {
     Budget::factory()->create();
 
     expect($period->budgets)->toHaveCount(2)
-        ->and($period->budgets->first()->budgetPeriod->is($period))->toBeTrue();
+        ->and($period->budgets->first()->period->is($period))->toBeTrue();
 });

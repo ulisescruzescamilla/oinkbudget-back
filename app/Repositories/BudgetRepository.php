@@ -6,6 +6,7 @@ use App\DataTransferObjects\BudgetData;
 use App\DataTransferObjects\BudgetUpdateData;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Models\Period;
 use App\Services\BudgetLimitCalculator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -22,16 +23,10 @@ class BudgetRepository
         return Budget::query()->with('category')->get();
     }
 
-    public function filterByDate(string $startDate, string $endDate): Collection
+    public function filterByPeriod(int $periodId): Collection
     {
-        $query = Budget::query();
-
-        $query->where('start_date', $startDate)
-            ->where('end_date', $endDate);
-
         // TODO sort
-
-        return $query->get();
+        return Budget::query()->with('category')->where('period_id', $periodId)->get();
     }
 
     public function store(BudgetData $data): Budget
@@ -87,24 +82,22 @@ class BudgetRepository
     }
 
     /**
-     * Take current budgets and calculate an average of daily limit
+     * Average daily limit of the budgets that belong to the active period.
      */
     public function getDailyLimit(): float
     {
-        $start = Budget::query()->where('is_active', true)->orderBy('start_date', 'asc');
-        $end = Budget::query()->where('is_active', true)->orderBy('end_date', 'desc');
+        $period = Period::query()->where('is_active', true)->first();
 
-        $budgets = $start->get();
-
-        if ($budgets->isEmpty()) {
+        if (! $period) {
             return 0;
         }
 
-        $startDate = $start->first()->start_date;
-        $endDate = $end->first()->end_date;
+        $daysInPeriod = $period->start_date->diffInDays($period->end_date);
 
-        $daysInPeriod = $startDate->diffInDays($endDate);
+        if (! $daysInPeriod) {
+            return 0;
+        }
 
-        return round($budgets->sum('max_limit') / $daysInPeriod, 2);
+        return round($period->budgets()->sum('max_limit') / $daysInPeriod, 2);
     }
 }
