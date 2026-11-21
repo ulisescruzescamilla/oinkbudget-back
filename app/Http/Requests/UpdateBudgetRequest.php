@@ -32,6 +32,7 @@ class UpdateBudgetRequest extends FormRequest
             'start_date' => 'sometimes|nullable|date|date_format:Y-m-d',
             'end_date' => 'sometimes|nullable|date|date_format:Y-m-d|after:start_date',
             'category_id' => 'nullable|integer|exists:categories,id',
+            'period_id' => 'nullable|integer|exists:periods,id',
         ];
     }
 }

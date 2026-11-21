@@ -77,6 +77,7 @@ it('converts back to an array matching Budget::$fillable', function () {
         'start_date' => '2026-01-01',
         'end_date' => '2026-12-31',
         'category_id' => null,
+        'period_id' => null,
         'client_id' => null,
     ]);
 });

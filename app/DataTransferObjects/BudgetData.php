@@ -17,6 +17,7 @@ final readonly class BudgetData
         public string $start_date,
         public string $end_date,
         public ?int $category_id = null,
+        public ?int $period_id = null,
         public ?string $client_id = null,
     ) {}
 
@@ -33,6 +34,7 @@ final readonly class BudgetData
             start_date: $data['start_date'],
             end_date: $data['end_date'],
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
+            period_id: isset($data['period_id']) ? (int) $data['period_id'] : null,
             client_id: $data['client_id'] ?? null,
         );
     }
@@ -53,6 +55,7 @@ final readonly class BudgetData
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'category_id' => $this->category_id,
+            'period_id' => $this->period_id,
             'client_id' => $this->client_id,
         ];
     }

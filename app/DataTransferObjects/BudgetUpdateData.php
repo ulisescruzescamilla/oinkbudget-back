@@ -23,6 +23,7 @@ final readonly class BudgetUpdateData
         public ?string $start_date = null,
         public ?string $end_date = null,
         public ?int $category_id = null,
+        public ?int $period_id = null,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -38,6 +39,7 @@ final readonly class BudgetUpdateData
             start_date: $data['start_date'] ?? null,
             end_date: $data['end_date'] ?? null,
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
+            period_id: isset($data['period_id']) ? (int) $data['period_id'] : null,
         );
     }
 
@@ -60,6 +62,7 @@ final readonly class BudgetUpdateData
                 'start_date' => $this->start_date,
                 'end_date' => $this->end_date,
                 'category_id' => $this->category_id,
+                'period_id' => $this->period_id,
             ],
             static fn (mixed $value): bool => $value !== null,
         );

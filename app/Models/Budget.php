@@ -21,12 +21,21 @@ class Budget extends Model
         'start_date',
         'end_date',
         'category_id',
+        'period_id',
         'client_id',
     ];
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Named budgetPeriod because the `period` attribute already holds the PeriodEnum frequency.
+     */
+    public function budgetPeriod(): BelongsTo
+    {
+        return $this->belongsTo(Period::class, 'period_id');
     }
 
     protected function casts(): array

@@ -2,6 +2,7 @@
 
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\Period;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
@@ -162,5 +163,42 @@ it('updates a budget category', function () {
     $this->assertDatabaseHas('budgets', [
         'id' => $budget->id,
         'category_id' => $category->id,
+    ]);
+});
+
+it('creates a budget within a period', function () {
+    $period = Period::factory()->create();
+    $data = Budget::factory()->make(['period_id' => $period->id])->toArray();
+
+    $response = $this->postJson('/api/budgets', $data)
+        ->assertCreated()
+        ->assertJsonPath('period_id', $period->id);
+
+    $this->assertDatabaseHas('budgets', [
+        'id' => $response->json('id'),
+        'period_id' => $period->id,
+    ]);
+});
+
+it('validates period_id must exist in periods table', function () {
+    $data = Budget::factory()->make(['period_id' => 9999])->toArray();
+
+    $this->postJson('/api/budgets', $data)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['period_id']);
+});
+
+it('updates a budget period', function () {
+    $budget = Budget::factory()->create();
+    $period = Period::factory()->create();
+
+    $this->putJson("/api/budgets/{$budget->id}", [
+        'max_limit' => $budget->max_limit,
+        'period_id' => $period->id,
+    ])->assertOk();
+
+    $this->assertDatabaseHas('budgets', [
+        'id' => $budget->id,
+        'period_id' => $period->id,
     ]);
 });
