@@ -13,7 +13,6 @@ class Budget extends Model
     protected $fillable = [
         'name',
         'max_limit',
-        'is_recurrent',
         'expense_amount',
         'percentage_value',
         'category_id',
@@ -39,7 +38,6 @@ class Budget extends Model
             'percentage_value' => 'integer',
             'created_at' => 'datetime:Y-m-d H:i',
             'updated_at' => 'datetime:Y-m-d H:i',
-            'is_recurrent' => 'boolean',
         ];
     }
 }

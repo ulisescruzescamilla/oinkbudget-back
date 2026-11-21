@@ -7,7 +7,6 @@ final readonly class BudgetData
     public function __construct(
         public string $name,
         public ?float $max_limit,
-        public bool $is_recurrent,
         public float $expense_amount,
         public ?int $percentage_value,
         public ?int $category_id = null,
@@ -20,7 +19,6 @@ final readonly class BudgetData
         return new self(
             name: $data['name'],
             max_limit: isset($data['max_limit']) ? (float) $data['max_limit'] : null,
-            is_recurrent: (bool) ($data['is_recurrent'] ?? false),
             expense_amount: (float) ($data['expense_amount'] ?? 0),
             percentage_value: isset($data['percentage_value']) ? (int) $data['percentage_value'] : null,
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
@@ -37,7 +35,6 @@ final readonly class BudgetData
         return [
             'name' => $this->name,
             'max_limit' => $this->max_limit,
-            'is_recurrent' => $this->is_recurrent,
             'expense_amount' => $this->expense_amount,
             'percentage_value' => $this->percentage_value,
             'category_id' => $this->category_id,

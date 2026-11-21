@@ -27,7 +27,6 @@ class UpdateBudgetRequest extends FormRequest
             'max_limit' => 'nullable|required_without:percentage_value|numeric|min:0',
             'percentage_value' => 'nullable|required_without:max_limit|integer|between:0,100',
             'expense_amount' => 'sometimes|nullable|numeric|min:0',
-            'is_recurrent' => 'nullable|boolean',
             'category_id' => 'nullable|integer|exists:categories,id',
             'period_id' => 'nullable|integer|exists:periods,id',
         ];
